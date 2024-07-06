@@ -38,10 +38,17 @@ void App::app_loop() {
 	auto xform = glm::identity<mat4>();
 	xform = glm::translate(xform, vec3(0, 0, 0));
 
-	auto view = glm::lookAt(vec3(0, 3, -5), vec3(0, 0, 0), vec3(0, 1, 0));
-	auto proj = glm::perspectiveFov(70.0f, 1280.0f, 720.0f, 0.1f, 100.0f);
-	auto mvp = proj * view * xform;
+	auto visual = render->create_visual();
+	visual->set_xform(xform);
+	visual->set_mesh(mesh);
+	visual->set_shader(shader);
 
+	auto proj = glm::perspectiveFov(70.0f, 1280.0f, 720.0f, 0.1f, 100.0f);
+	auto camera = render->create_camera();
+	camera->set_view(vec3(0, 3, -5), vec3(0, 0, 0), vec3(0, 1, 0));
+	camera->set_proj(70.0f, vec2(1280.0f, 720.0f), vec2(0.1f, 100.0f));
+
+	render->clear_color = vec3(0.2, 0.1, 0.3);
 
 	while (render->windows.size() > 0) {
 		// Remove windows that need to be closed
@@ -60,14 +67,7 @@ void App::app_loop() {
 		//glEnable(GL_DEPTH_TEST); // enable depth-testing
 		//glDepthFunc(GL_LESS); // depth-testing interprets a smaller value as "closer"
 
-		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-		glClear(GL_COLOR_BUFFER_BIT);
-
-		shader->use_shader();
-		shader->set_matrix4("mvp", mvp);
-		
-		mesh->use_mesh();
-		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+		render->draw_visuals();
 
 		// End frame for all windows
 		for (auto wnd : render->windows) {

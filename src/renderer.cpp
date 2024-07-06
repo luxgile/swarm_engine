@@ -6,8 +6,6 @@
 using namespace std;
 
 RendererBackend::RendererBackend() {
-	windows = std::vector<Window*>();
-
 	setup_gl();
 
 	// Main Window
@@ -63,6 +61,54 @@ Mesh* RendererBackend::create_mesh() {
 
 void RendererBackend::destroy_mesh(Mesh* mesh) {
 	meshes.erase(std::remove(meshes.begin(), meshes.end(), mesh), meshes.end());
+}
+
+Camera* RendererBackend::create_camera() {
+	Camera* camera = new Camera();
+	cameras.push_back(camera);
+	return camera;
+}
+
+void RendererBackend::destroy_camera(Camera* camera) {
+	cameras.erase(std::remove(cameras.begin(), cameras.end(), camera), cameras.end());
+}
+
+Camera* RendererBackend::get_current_camera() {
+	Camera* active = nullptr;
+	int min_priority = 999999;
+	for (auto c : cameras) {
+		if (c->priority < min_priority) {
+			min_priority = c->priority;
+			active = c;
+		}
+	}
+	return active;
+}
+
+Visual* RendererBackend::create_visual() {
+	Visual* v = new Visual();
+	visuals.push_back(v);
+	return v;
+}
+
+void RendererBackend::destroy_visual(Visual* v) {
+	visuals.erase(std::remove(visuals.begin(), visuals.end(), v), visuals.end());
+}
+
+void RendererBackend::draw_visuals() {
+	auto camera = get_current_camera();
+
+	glClearColor(clear_color.r, clear_color.g, clear_color.b, 1.0f);
+	glClear(GL_COLOR_BUFFER_BIT);
+
+	for (auto v : visuals) {
+		auto mvp = camera->get_proj_mat() * camera->get_view_mat() * *v->get_xform();
+		v->get_shader()->use_shader();
+		v->get_shader()->set_matrix4("mvp", mvp);
+
+		v->get_mesh()->use_mesh();
+		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+	}
 }
 
 Window::Window(ivec2 size, string title) {
@@ -128,11 +174,11 @@ void Shader::compile_shader(const char* vert, const char* frag) {
 	glDeleteShader(fragment);
 }
 
-void Shader::use_shader() {
+void Shader::use_shader() const {
 	glUseProgram(gl_program);
 }
 
-void Shader::set_matrix4(const char* uniform, mat4 matrix) {
+void Shader::set_matrix4(const char* uniform, mat4 matrix) const {
 	unsigned int uniform_loc = glGetUniformLocation(gl_program, uniform);
 	glUniformMatrix4fv(uniform_loc, 1, GL_FALSE, glm::value_ptr(matrix));
 }
@@ -168,6 +214,14 @@ void Mesh::set_vertices(vector<vec3> vertices) {
 	glEnableVertexAttribArray(0);
 }
 
-void Mesh::use_mesh() {
+void Mesh::use_mesh() const {
 	glBindVertexArray(gl_vertex_array);
+}
+
+void Camera::set_view(vec3 pos, vec3 target, vec3 up) {
+	view = glm::lookAt(pos, target, up);
+}
+
+void Camera::set_proj(float fov, vec2 screen_size, vec2 near_far_plane) {
+	proj = perspectiveFov(fov, screen_size.x, screen_size.y, near_far_plane.x, near_far_plane.y);
 }
