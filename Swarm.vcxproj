@@ -130,7 +130,22 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="src\core.cpp" />
+    <ClCompile Include="src\renderer.cpp" />
     <ClCompile Include="src\Swarm.cpp" />
+    <ClCompile Include="src\utils.cpp" />
+    <ClCompile Include="src\utils.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="src\core.h" />
+    <ClInclude Include="src\renderer.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include=".gitignore" />
+    <None Include="res\pbr.fs" />
+    <None Include="res\pbr.vs" />
+    <None Include="res\unlit.frag" />
+    <None Include="res\unlit.vert" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
