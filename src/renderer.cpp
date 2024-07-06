@@ -1,6 +1,7 @@
 #include "renderer.h"
 #include "core.h"
 #include <string>
+#include <glm/gtc/type_ptr.hpp>
 
 using namespace std;
 
@@ -129,6 +130,11 @@ void Shader::compile_shader(const char* vert, const char* frag) {
 
 void Shader::use_shader() {
 	glUseProgram(gl_program);
+}
+
+void Shader::set_matrix4(const char* uniform, mat4 matrix) {
+	unsigned int uniform_loc = glGetUniformLocation(gl_program, uniform);
+	glUniformMatrix4fv(uniform_loc, 1, GL_FALSE, glm::value_ptr(matrix));
 }
 
 inline int to_gl_define(ShaderSrcType type) {

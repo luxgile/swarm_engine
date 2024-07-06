@@ -1,5 +1,6 @@
 #include "core.h"
 #include <iostream>
+#include <glm/gtc/matrix_transform.hpp>
 
 App* App::singleton = nullptr;
 
@@ -34,6 +35,14 @@ void App::app_loop() {
 	mesh->set_vertices(vertices);
 	mesh->set_triangles(triangles);
 
+	auto xform = glm::identity<mat4>();
+	xform = glm::translate(xform, vec3(0, 0, 0));
+
+	auto view = glm::lookAt(vec3(0, 3, -5), vec3(0, 0, 0), vec3(0, 1, 0));
+	auto proj = glm::perspectiveFov(70.0f, 1280.0f, 720.0f, 0.1f, 100.0f);
+	auto mvp = proj * view * xform;
+
+
 	while (render->windows.size() > 0) {
 		// Remove windows that need to be closed
 		for (auto wnd : render->windows) {
@@ -55,6 +64,8 @@ void App::app_loop() {
 		glClear(GL_COLOR_BUFFER_BIT);
 
 		shader->use_shader();
+		shader->set_matrix4("mvp", mvp);
+		
 		mesh->use_mesh();
 		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 

@@ -52,7 +52,6 @@ public:
 };
 
 class Camera {
-	mat4 xform;
 
 };
 
@@ -71,6 +70,7 @@ class Shader {
 	public:
 	void compile_shader(const char* vert, const char* frag);
 	void use_shader();
+	void set_matrix4(const char* uniform, mat4 matrix);
 };
 
 template <typename T>
