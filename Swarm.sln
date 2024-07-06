@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.8.34525.116
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Swarm", "Swarm.vcxproj", "{4C2D85B2-FA64-4107-A6FE-D0F46A7A256B}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|x64 = Debug|x64
+		Debug|x86 = Debug|x86
+		Release|x64 = Release|x64
+		Release|x86 = Release|x86
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{4C2D85B2-FA64-4107-A6FE-D0F46A7A256B}.Debug|x64.ActiveCfg = Debug|x64
+		{4C2D85B2-FA64-4107-A6FE-D0F46A7A256B}.Debug|x64.Build.0 = Debug|x64
+		{4C2D85B2-FA64-4107-A6FE-D0F46A7A256B}.Debug|x86.ActiveCfg = Debug|Win32
+		{4C2D85B2-FA64-4107-A6FE-D0F46A7A256B}.Debug|x86.Build.0 = Debug|Win32
+		{4C2D85B2-FA64-4107-A6FE-D0F46A7A256B}.Release|x64.ActiveCfg = Release|x64
+		{4C2D85B2-FA64-4107-A6FE-D0F46A7A256B}.Release|x64.Build.0 = Release|x64
+		{4C2D85B2-FA64-4107-A6FE-D0F46A7A256B}.Release|x86.ActiveCfg = Release|Win32
+		{4C2D85B2-FA64-4107-A6FE-D0F46A7A256B}.Release|x86.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {C443FFD5-276D-4E17-A7A5-C134ACC6C1D8}
+	EndGlobalSection
+EndGlobal
