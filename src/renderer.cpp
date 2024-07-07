@@ -492,6 +492,7 @@ Texture* TextureImport::load_file(const char* path) {
 
 	Texture* texture = App::get_render_backend()->create_texture();
 	texture->set_rgb(width, heigth, data);
+	stbi_image_free(data);
 	return nullptr;
 }
 
