@@ -138,6 +138,7 @@ class Mesh {
 
 public:
 	Mesh();
+
 	void set_triangles(vector<unsigned int> indices);
 	void set_vertices(vector<Vertex> vertices);
 

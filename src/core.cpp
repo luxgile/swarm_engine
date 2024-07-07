@@ -21,12 +21,17 @@ void App::app_loop() {
 	auto shader_importer = ShaderImport();
 	auto shader = shader_importer.load_file("E:/dev/Swarm/res/pbr");
 	auto model_importer = ModelImport();
-	auto model = model_importer.load_file("E:/dev/Swarm/res/monkey.glb");
+	auto monkey_model = model_importer.load_file("E:/dev/Swarm/res/monkey.glb");
+	auto floor_model = model_importer.load_file("E:/dev/Swarm/res/cube.glb");
 
+	auto monkey_visual = render->create_visual();
+	monkey_visual->set_model(monkey_model);
+	monkey_visual->set_shader(shader);
 
-	auto visual = render->create_visual();
-	visual->set_model(model);
-	visual->set_shader(shader);
+	auto floor_visual = render->create_visual();
+	floor_visual->set_model(floor_model);
+	floor_visual->set_shader(shader);
+	floor_visual->set_xform(glm::translate(glm::scale(glm::identity<mat4>(), vec3(25.0f, 0.1f, 25.0f)), vec3(0, -10.0f, 0)));
 
 	auto ligth = render->create_point_light();
 	ligth->position = vec3(3.0, 1.0, -1.0);
@@ -64,11 +69,11 @@ void App::app_loop() {
 
 		// Logic here
 		// Most likely flec
-		float y = glm::sin(app_time / 0.5f) * 2.0f;
+		float y = 1 + glm::sin(app_time / 0.5f) * 0.5f;
 		auto xform = glm::identity<mat4>();
 		xform = glm::rotate(xform, glm::radians(180.0f), vec3(0, 1, 0));
 		xform = glm::translate(xform, vec3(0, y, 0));
-		visual->set_xform(xform);
+		monkey_visual->set_xform(xform);
 
 		// Render here
 		render->draw_visuals();
