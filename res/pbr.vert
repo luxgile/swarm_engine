@@ -32,7 +32,7 @@ void main()
     // Compute fragment position based on model transformations
     fragPosition = vec3(matModel*vec4(aPos, 1.0f));
 
-    fragTexCoord = aCoords*2.0;
+    fragTexCoord = aCoords;
     fragNormal = normalize(normalMatrix*aNormal);
     vec3 fragTangent = normalize(normalMatrix*aTangent);
     fragTangent = normalize(fragTangent - dot(fragTangent, fragNormal)*fragNormal);

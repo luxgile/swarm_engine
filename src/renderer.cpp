@@ -2,6 +2,8 @@
 #include "core.h"
 #include <string>
 #include <glm/gtc/type_ptr.hpp>
+#define STB_IMAGE_IMPLEMENTATION
+#include "stb_image.h"
 
 using namespace std;
 
@@ -53,6 +55,16 @@ void RendererBackend::destroy_shader(Shader* shader) {
 	shaders.erase(std::remove(shaders.begin(), shaders.end(), shader), shaders.end());
 }
 
+Material* RendererBackend::create_material() {
+	Material* material = new Material();
+	materials.push_back(material);
+	return material;
+}
+
+void RendererBackend::destroy_material(Material* material) {
+	materials.erase(std::remove(materials.begin(), materials.end(), material), materials.end());
+}
+
 Mesh* RendererBackend::create_mesh() {
 	Mesh* mesh = new Mesh();
 	meshes.push_back(mesh);
@@ -73,13 +85,23 @@ void RendererBackend::destroy_model(Model* model) {
 	models.erase(std::remove(models.begin(), models.end(), model), models.end());
 }
 
-PointLight* RendererBackend::create_point_light() {
-	PointLight* light = new PointLight();
+Texture* RendererBackend::create_texture() {
+	Texture* texture = new Texture();
+	textures.push_back(texture);
+	return texture;
+}
+
+void RendererBackend::destroy_texture(Texture* texture) {
+	textures.erase(std::remove(textures.begin(), textures.end(), texture), textures.end());
+}
+
+Light* RendererBackend::create_light() {
+	Light* light = new Light();
 	lights.push_back(light);
 	return light;
 }
 
-void RendererBackend::destroy_point_ligth(PointLight* point_ligth) {
+void RendererBackend::destroy_ligth(Light* point_ligth) {
 	lights.erase(std::remove(lights.begin(), lights.end(), point_ligth), lights.end());
 }
 
@@ -125,9 +147,9 @@ void RendererBackend::draw_visuals() {
 
 	for (auto v : visuals) {
 		auto mvp = camera->get_proj_mat() * camera->get_view_mat() * *v->get_xform();
-		v->get_shader()->use_shader();
-		v->get_shader()->set_matrix4("matModel", *v->get_xform());
-		v->get_shader()->set_matrix4("mvp", mvp);
+		v->get_material()->use_material();
+		v->get_material()->get_shader()->set_matrix4("matModel", *v->get_xform());
+		v->get_material()->get_shader()->set_matrix4("mvp", mvp);
 
 		for (auto mesh : v->get_model()->meshes) {
 			mesh->use_mesh();
@@ -147,7 +169,9 @@ void RendererBackend::update_shader_globals() {
 			auto light = lights[i];
 			string ligth_access_std = "lights[" + std::to_string(i) + "].";
 			shader->set_bool((ligth_access_std + "enabled").c_str(), true);
+			shader->set_int((ligth_access_std + "type").c_str(), (int)light->type);
 			shader->set_vec3((ligth_access_std + "position").c_str(), light->position);
+			shader->set_vec3((ligth_access_std + "direction").c_str(), light->dir);
 			shader->set_vec3((ligth_access_std + "color").c_str(), light->color);
 			shader->set_float((ligth_access_std + "intensity").c_str(), light->intensity);
 		}
@@ -155,6 +179,7 @@ void RendererBackend::update_shader_globals() {
 }
 
 Window::Window(ivec2 size, string title) {
+	glfwWindowHint(GLFW_SAMPLES, 4);
 	gl_wnd = glfwCreateWindow(size.x, size.y, title.c_str(), NULL, NULL);
 }
 
@@ -208,6 +233,15 @@ void Shader::compile_shader(const char* vert, const char* frag) {
 
 void Shader::use_shader() const {
 	glUseProgram(gl_program);
+}
+
+void Shader::set_sampler_id(string uniform, SamplerID id) {
+	set_sampler_id(uniform, (uint)id);
+}
+
+void Shader::set_sampler_id(string uniform, uint id) {
+	unsigned int uniform_loc = glGetUniformLocation(gl_program, uniform.c_str());
+	glUniform1i(uniform_loc, id);
 }
 
 void Shader::set_bool(const char* uniform, bool value) const {
@@ -285,7 +319,7 @@ void Mesh::set_vertices(vector<Vertex> vertices) {
 	glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 14, (void*)(sizeof(float) * 9));	// VERTEX COLOR
 	glEnableVertexAttribArray(3);
 	glVertexAttribPointer(4, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 14, (void*)(sizeof(float) * 12));	// VERTEX COORDS
-	glEnableVertexAttribArray(3);
+	glEnableVertexAttribArray(4);
 }
 
 void Mesh::use_mesh() const {
@@ -392,3 +426,82 @@ Mesh* ModelImport::process_ai_mesh(aiMesh* mesh, const aiScene* scene) {
 	return gpu_mesh;
 }
 
+Texture::Texture() {
+	glGenTextures(1, &gl_texture);
+}
+
+void Texture::use_texture(uint id) {
+	glActiveTexture(GL_TEXTURE0 + id);
+	glBindTexture(GL_TEXTURE_2D, gl_texture);
+}
+
+void Texture::set_rgb(uint width, uint heigth, unsigned char* data) {
+	glBindTexture(GL_TEXTURE_2D, gl_texture);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, heigth, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+	glGenerateMipmap(GL_TEXTURE_2D);
+}
+
+void Texture::set_wrap(TextureWrap wrap) {
+	uint gl_wrap = 0;
+	switch (wrap) {
+	case Repeat:
+		gl_wrap = GL_REPEAT;
+		break;
+	case Mirrored:
+		gl_wrap = GL_MIRRORED_REPEAT;
+		break;
+	case ClampEdge:
+		gl_wrap = GL_CLAMP_TO_EDGE;
+		break;
+	case ClampBorder:
+		gl_wrap = GL_CLAMP_TO_BORDER;
+		break;
+	}
+	glBindTexture(GL_TEXTURE_2D, gl_texture);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, gl_wrap);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, gl_wrap);
+}
+
+void Texture::set_filter(TextureFilter filter) {
+	uint gl_filter = 0;
+	uint gl_mm_filter = 0;
+	switch (filter) {
+	case Nearest:
+		gl_filter = GL_NEAREST;
+		gl_mm_filter = GL_NEAREST_MIPMAP_NEAREST;
+		break;
+	case Linear:
+		gl_filter = GL_LINEAR;
+		gl_mm_filter = GL_LINEAR_MIPMAP_LINEAR;
+		break;
+	}
+
+	glBindTexture(GL_TEXTURE_2D, gl_texture);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, gl_filter);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, gl_mm_filter);
+}
+
+Texture* TextureImport::load_file(const char* path) {
+	int width, heigth, nrChannels;
+	unsigned char* data = stbi_load(path, &width, &heigth, &nrChannels, 0);
+	if (!data) {
+		fprintf(stderr, "ERROR: Failed to load texture at: %s\n %s\n", path, stbi_failure_reason());
+		return nullptr;
+	}
+
+	Texture* texture = App::get_render_backend()->create_texture();
+	texture->set_rgb(width, heigth, data);
+	return nullptr;
+}
+
+Material::Material() {
+	
+}
+
+void Material::use_material() const {
+	for (size_t i = 0; i < textures.size(); i++) {
+		if(textures[i] == nullptr) continue;
+		textures[i]->use_texture(i);
+	}
+	shader->use_shader();
+}

@@ -48,5 +48,6 @@
     <None Include="vcpkg.json" />
     <None Include="vcpkg-configuration.json" />
     <None Include="res\monkey.glb" />
+    <None Include="res\cube.glb" />
   </ItemGroup>
 </Project>

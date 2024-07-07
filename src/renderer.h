@@ -24,7 +24,9 @@ class Mesh;
 class Model;
 class Visual;
 class Camera;
-class PointLight;
+class Light;
+class Texture;
+class Material;
 
 class RendererBackend {
 public:
@@ -36,8 +38,10 @@ public:
 	std::vector<Shader*> shaders;
 	std::vector<Mesh*> meshes;
 	std::vector<Model*> models;
+	std::vector<Texture*> textures;
 	std::vector<Camera*> cameras;
-	std::vector<PointLight*> lights;
+	std::vector<Light*> lights;
+	std::vector<Material*> materials;
 	std::vector<Visual*> visuals;
 
 private:
@@ -53,14 +57,20 @@ public:
 	Shader* create_shader();
 	void destroy_shader(Shader* shader);
 
+	Material* create_material();
+	void destroy_material(Material* material);
+
 	Mesh* create_mesh();
 	void destroy_mesh(Mesh* mesh);
 
 	Model* create_model();
 	void destroy_model(Model* model);
 
-	PointLight* create_point_light();
-	void destroy_point_ligth(PointLight* point_ligth);
+	Texture* create_texture();
+	void destroy_texture(Texture* texture);
+
+	Light* create_light();
+	void destroy_ligth(Light* light);
 
 	Camera* create_camera();
 	void destroy_camera(Camera* camera);
@@ -102,6 +112,12 @@ enum ShaderSrcType {
 	FragmentSrc
 };
 inline int to_gl_define(ShaderSrcType type);
+enum SamplerID {
+	Albedo = 0,
+	Normal,
+	MRA,
+	Emissive,
+};
 
 class Shader {
 	GL_ID gl_program;
@@ -112,6 +128,8 @@ private:
 public:
 	void compile_shader(const char* vert, const char* frag);
 	void use_shader() const;
+	void set_sampler_id(string uniform, SamplerID id);
+	void set_sampler_id(string uniform, uint id);
 	void set_bool(const char* uniform, bool value) const;
 	void set_int(const char* uniform, int value) const;
 	void set_float(const char* uniform, float value) const;
@@ -147,27 +165,68 @@ public:
 	uint get_elements_count() { return elements_count; }
 };
 
+enum TextureWrap {
+	Repeat,
+	Mirrored,
+	ClampEdge,
+	ClampBorder,
+};
+enum TextureFilter {
+	Nearest,
+	Linear,
+};
+class Texture {
+	GL_ID gl_texture;
+
+public:
+	Texture();
+
+public:
+	void use_texture(uint id);
+	void set_rgb(uint width, uint heigth, unsigned char* data);
+	void set_wrap(TextureWrap wrap);
+	void set_filter(TextureFilter wrap);
+};
+
 class Model {
 public:
 	vector<Mesh*> meshes;
 };
 
+class Material {
+	Shader* shader;
+	vector<Texture*> textures = vector<Texture*>(16, nullptr);
+public:
+	Material();
+	/// @brief Tell GL to render using this material.
+	void use_material() const;
+	void set_shader(Shader* shader) { this->shader = shader; }
+	Shader* get_shader() { return shader; }
+	void set_texture(uint id, Texture* texture) { this->textures[id] = texture; }
+	void set_texture(SamplerID id, Texture* texture) { this->textures[id] = texture; }
+};
+
 class Visual {
 	mat4 xform;
-	Shader* shader;
+	Material* material;
 	Model* model;
 
 public:
 	void set_xform(mat4 xform) { this->xform = xform; }
-	const mat4* get_xform() { return &xform; }
+	mat4* get_xform() { return &xform; }
 	void set_model(Model* model) { this->model = model; }
-	const Model* get_model() { return model; }
-	void set_shader(Shader* shader) { this->shader = shader; }
-	const Shader* get_shader() { return shader; }
+	Model* get_model() { return model; }
+	void set_material(Material* shader) { this->material = shader; }
+	Material* get_material() { return material; }
 };
 
-class PointLight {
-public:
+enum LightType {
+	Point = 0,
+	Directional,
+};
+struct Light {
+	LightType type;
+	vec3 dir;
 	vec3 position;
 	float intensity;
 	vec3 color;
@@ -187,4 +246,8 @@ public:
 	Model* load_file(const char* path) override;
 	void process_ai_node(Model* model, aiNode* node, const aiScene* scene);
 	Mesh* process_ai_mesh(aiMesh* mesh, const aiScene* scene);
+};
+class TextureImport : FileImport<Texture> {
+public:
+	Texture* load_file(const char* path) override;
 };

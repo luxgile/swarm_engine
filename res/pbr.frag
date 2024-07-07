@@ -7,9 +7,9 @@
 
 struct Light {
     int enabled;
-    int type;
+    int type; // 0 = POINT | 1 = DIRECTIONAL
     vec3 position;
-    vec3 target;
+    vec3 direction;
     vec3 color;
     float intensity;
 };
@@ -117,11 +117,20 @@ vec3 ComputePBR()
 
     for (int i = 0; i < numOfLights; i++)
     {
-        vec3 L = normalize(lights[i].position - fragPosition);      // Compute light vector
-        vec3 H = normalize(V + L);                                  // Compute halfway bisecting vector
-        float dist = length(lights[i].position - fragPosition);     // Compute distance to light
-        float attenuation = 1.0 / (dist * dist * 0.23);                   // Compute attenuation
-        vec3 radiance = lights[i].color * lights[i].intensity * attenuation; // Compute input radiance, light energy comming in
+        vec3 L, H, radiance;
+        float dist;
+        if (lights[i].type == 0) { // POINT
+			L = normalize(lights[i].position - fragPosition);      // Compute light vector
+			H = normalize(V + L);                                  // Compute halfway bisecting vector
+			dist = length(lights[i].position - fragPosition);     // Compute distance to light
+			float attenuation = 1.0 / (dist * dist * 0.23);                   // Compute attenuation
+			radiance = lights[i].color * lights[i].intensity * attenuation; // Compute input radiance, light energy comming in
+        }
+        else if (lights[i].type == 1) { // DIRECTIONAL
+            L = -lights[i].direction;
+			H = normalize(V + L);                                  // Compute halfway bisecting vector
+			radiance = lights[i].color * lights[i].intensity; // Compute input radiance, light energy comming in
+        }
 
         // Cook-Torrance BRDF distribution function
         float nDotV = max(dot(N,V), 0.0000001);
