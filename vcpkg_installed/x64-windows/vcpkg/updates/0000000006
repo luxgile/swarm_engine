@@ -1,7 +1,9 @@
-Package: egl-registry
-Version: 2024-01-25
+Package: rapidjson
+Version: 2023-07-17
+Port-Version: 1
+Depends: vcpkg-cmake, vcpkg-cmake-config
 Architecture: x64-windows
 Multi-Arch: same
-Abi: 731c242358c4d4922a1db5767aa22c7d4d9af892024f19e05528374531efbf78
-Description: EGL API and Extension Registry
-Status: purge ok half-installed
+Abi: a6f3f388dd6db4dcbffc19a06e3b1799cb3010770ae8e86a19f3e8f11847170d
+Description: A fast JSON parser/generator for C++ with both SAX/DOM style API <http://rapidjson.org/>
+Status: install ok half-installed

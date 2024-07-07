@@ -1,9 +1,9 @@
-Package: opengl
-Version: 2022-12-04
-Port-Version: 3
-Depends: opengl-registry
+Package: assimp
+Version: 5.4.0
+Port-Version: 1
+Depends: draco, jhasse-poly2tri, kubazip, minizip, polyclipping, pugixml, rapidjson, stb, utfcpp, vcpkg-cmake, vcpkg-cmake-config, zlib
 Architecture: x64-windows
 Multi-Arch: same
-Abi: 88361d9e36fe5565a67b06df06f3f5d1ff163c6a9d85e9de86d586e0e672b4a9
-Description: Open Graphics Library (OpenGL)[3][4][5] is a cross-language, cross-platform application programming interface (API) for rendering 2D and 3D vector graphics.
+Abi: 6983fae830160346ea12c4f15f7c13a279b2f3bd3e76d96d89483eb8a433f78b
+Description: The Open Asset import library
 Status: install ok half-installed

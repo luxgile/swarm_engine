@@ -10,14 +10,14 @@ struct Light {
     int type;
     vec3 position;
     vec3 target;
-    vec4 color;
+    vec3 color;
     float intensity;
 };
 
 // Input vertex attributes (from vertex shader)
 in vec3 fragPosition;
 in vec2 fragTexCoord;
-in vec4 fragColor;
+in vec3 fragColor;
 in vec3 fragNormal;
 in vec4 shadowPos;
 in mat3 TBN;
@@ -40,11 +40,11 @@ uniform int useTexNormal;
 uniform int useTexMRA;
 uniform int useTexEmissive;
 
-uniform vec4  albedoColor;
+uniform vec4  albedoColor = vec4(1.0);
 uniform vec4  emissiveColor;
 uniform float normalValue;
-uniform float metallicValue;
-uniform float roughnessValue;
+uniform float metallicValue = 0.5;
+uniform float roughnessValue = 0.5;
 uniform float aoValue = 1;
 uniform float emissivePower;
 
@@ -121,7 +121,7 @@ vec3 ComputePBR()
         vec3 H = normalize(V + L);                                  // Compute halfway bisecting vector
         float dist = length(lights[i].position - fragPosition);     // Compute distance to light
         float attenuation = 1.0 / (dist * dist * 0.23);                   // Compute attenuation
-        vec3 radiance = lights[i].color.rgb * lights[i].intensity * attenuation; // Compute input radiance, light energy comming in
+        vec3 radiance = lights[i].color * lights[i].intensity * attenuation; // Compute input radiance, light energy comming in
 
         // Cook-Torrance BRDF distribution function
         float nDotV = max(dot(N,V), 0.0000001);
@@ -141,7 +141,7 @@ vec3 ComputePBR()
         // Mult kD by the inverse of metallnes, only non-metals should have diffuse light
         kD *= 1.0 - metallic;
         lightAccum += ((kD*albedo.rgb/PI + spec)*radiance*nDotL)*lights[i].enabled; // Angle of light has impact on result
-        // lightAccum += radiance;
+//         lightAccum += radiance;
     }
     
     vec3 ambientFinal = (ambientColor + albedo)*ambient*0.5;

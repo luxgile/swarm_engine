@@ -41,9 +41,12 @@
   </ItemGroup>
   <ItemGroup>
     <None Include=".gitignore" />
-    <None Include="res\pbr.fs" />
-    <None Include="res\pbr.vs" />
+    <None Include="res\pbr.frag" />
+    <None Include="res\pbr.vert" />
     <None Include="res\unlit.frag" />
     <None Include="res\unlit.vert" />
+    <None Include="vcpkg.json" />
+    <None Include="vcpkg-configuration.json" />
+    <None Include="res\monkey.glb" />
   </ItemGroup>
 </Project>
