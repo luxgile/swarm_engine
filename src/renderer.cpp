@@ -138,6 +138,17 @@ void RendererBackend::destroy_visual(Visual* v) {
 }
 
 void RendererBackend::draw_visuals() {
+	switch (mode) {
+	case Forward:
+		render_visuals_forward();
+		break;
+	case Deferred:
+		render_visuals_deferred();
+		break;
+	}
+}
+
+void RendererBackend::render_visuals_forward() {
 	auto camera = get_current_camera();
 
 	glClearColor(clear_color.r, clear_color.g, clear_color.b, 1.0f);
@@ -156,6 +167,9 @@ void RendererBackend::draw_visuals() {
 			glDrawElements(GL_TRIANGLES, mesh->get_elements_count(), GL_UNSIGNED_INT, 0);
 		}
 	}
+}
+void RendererBackend::render_visuals_deferred() {
+	fprintf(stderr, "ERROR: DEFERRED NOT YET IMPLEMENTED.");
 }
 
 void RendererBackend::update_shader_globals() {

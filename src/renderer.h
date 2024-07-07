@@ -28,12 +28,19 @@ class Light;
 class Texture;
 class Material;
 
+enum RenderMode {
+	Forward,
+	Deferred,
+};
+
 class RendererBackend {
 public:
 	vec3 clear_color = vec3(1.0f);
 	vec3 ambient_color = vec3(0.3f, 0.3f, 0.1f);
 	float ambient_intensity = 0.3f;
+	RenderMode mode = RenderMode::Forward;
 
+	//TODO: Create an actual mempool to avoid all this shit.
 	std::vector<Window*> windows;
 	std::vector<Shader*> shaders;
 	std::vector<Mesh*> meshes;
@@ -47,6 +54,9 @@ public:
 private:
 	void setup_gl();
 	void setup_glew();
+
+	void render_visuals_forward();
+	void render_visuals_deferred();
 
 public:
 	RendererBackend();
@@ -186,6 +196,20 @@ public:
 	void set_rgb(uint width, uint heigth, unsigned char* data);
 	void set_wrap(TextureWrap wrap);
 	void set_filter(TextureFilter wrap);
+};
+
+/// @brief When used, all render operations are drawn into the render buffer. Needs a texture or render buffer attached as output.
+class FrameBuffer {
+
+};
+
+/// @brief Used with FrameBuffers for fast offscreen rendering. Only drawback is that it's not possible to read from them.
+class RenderBuffer {
+	
+};
+
+class CubemapTexture {
+
 };
 
 class Model {
