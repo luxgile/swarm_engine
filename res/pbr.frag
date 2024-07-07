@@ -1,8 +1,8 @@
 #version 330
 
 #define MAX_LIGHTS              4
-#define LIGHT_DIRECTIONAL       0
-#define LIGHT_POINT             1
+#define LIGHT_POINT             0
+#define LIGHT_DIRECTIONAL       1
 #define PI 3.14159265358979323846
 
 struct Light {
@@ -32,8 +32,8 @@ uniform sampler2D mraMap;
 uniform sampler2D normalMap;
 uniform sampler2D emissiveMap; // r: Hight g:emissive
 
-uniform vec2 tiling;
-uniform vec2 offset;
+uniform vec2 tiling = vec2(1.0);
+uniform vec2 offset = vec2(0.0);
 
 uniform int useTexAlbedo;
 uniform int useTexNormal;
@@ -43,8 +43,8 @@ uniform int useTexEmissive;
 uniform vec4  albedoColor = vec4(1.0);
 uniform vec4  emissiveColor;
 uniform float normalValue;
-uniform float metallicValue = 0.5;
-uniform float roughnessValue = 0.5;
+uniform float metallicValue = 0.9;
+uniform float roughnessValue = 0.8;
 uniform float aoValue = 1;
 uniform float emissivePower;
 
@@ -119,14 +119,14 @@ vec3 ComputePBR()
     {
         vec3 L, H, radiance;
         float dist;
-        if (lights[i].type == 0) { // POINT
+        if (lights[i].type == LIGHT_POINT) { // POINT
 			L = normalize(lights[i].position - fragPosition);      // Compute light vector
 			H = normalize(V + L);                                  // Compute halfway bisecting vector
 			dist = length(lights[i].position - fragPosition);     // Compute distance to light
 			float attenuation = 1.0 / (dist * dist * 0.23);                   // Compute attenuation
 			radiance = lights[i].color * lights[i].intensity * attenuation; // Compute input radiance, light energy comming in
         }
-        else if (lights[i].type == 1) { // DIRECTIONAL
+        else if (lights[i].type == LIGHT_DIRECTIONAL) { // DIRECTIONAL
             L = -lights[i].direction;
 			H = normalize(V + L);                                  // Compute halfway bisecting vector
 			radiance = lights[i].color * lights[i].intensity; // Compute input radiance, light energy comming in
@@ -156,6 +156,7 @@ vec3 ComputePBR()
     vec3 ambientFinal = (ambientColor + albedo)*ambient*0.5;
     
     return ambientFinal + lightAccum*ao + emissive;
+
 }
 
 void main()

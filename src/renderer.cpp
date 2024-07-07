@@ -482,6 +482,7 @@ void Texture::set_filter(TextureFilter filter) {
 }
 
 Texture* TextureImport::load_file(const char* path) {
+	fprintf(stderr, "INFO: Loading texture at: %s\n", path);
 	int width, heigth, nrChannels;
 	unsigned char* data = stbi_load(path, &width, &heigth, &nrChannels, 0);
 	if (!data) {
@@ -495,12 +496,12 @@ Texture* TextureImport::load_file(const char* path) {
 }
 
 Material::Material() {
-	
+
 }
 
 void Material::use_material() const {
 	for (size_t i = 0; i < textures.size(); i++) {
-		if(textures[i] == nullptr) continue;
+		if (textures[i] == nullptr) continue;
 		textures[i]->use_texture(i);
 	}
 	shader->use_shader();
