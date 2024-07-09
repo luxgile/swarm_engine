@@ -175,6 +175,11 @@ public:
 	uint get_elements_count() { return elements_count; }
 };
 
+enum TextureFormat {
+	RGBA8,
+	D24_S8,
+};
+uint to_gl(TextureFormat format);
 enum TextureWrap {
 	Repeat,
 	Mirrored,
@@ -192,21 +197,40 @@ public:
 	Texture();
 
 public:
+	GL_ID get_gl_id() const { return gl_texture; }
 	void use_texture(uint id);
-	void set_rgb(uint width, uint heigth, unsigned char* data);
+	void set_rgb8(uint width, uint heigth, unsigned char* data);
 	void set_wrap(TextureWrap wrap);
 	void set_filter(TextureFilter wrap);
 };
 
-/// @brief When used, all render operations are drawn into the render buffer. Needs a texture or render buffer attached as output.
-class FrameBuffer {
-
-};
-
 /// @brief Used with FrameBuffers for fast offscreen rendering. Only drawback is that it's not possible to read from them.
 class RenderBuffer {
-	
+	GL_ID gl_rbo;
+
+public:
+	RenderBuffer();
+
+	GL_ID get_gl_id() { return gl_rbo; }
+	void set_format(TextureFormat format, vec2 size);
 };
+
+/// @brief When used, all render operations are drawn into the render buffer. Needs a texture or render buffer attached as output.
+class FrameBuffer {
+	GL_ID gl_fbo;
+
+public:
+	FrameBuffer();
+
+	static void unbind_framebuffer();
+	bool is_complete();
+	void use_framebuffer();
+	void set_output_depth_stencil(Texture* texture);
+	void set_output_depth_stencil(RenderBuffer* rbo);
+	void set_output_color(Texture* texture, uint id);
+	void set_output_color(RenderBuffer* rbo, uint id);
+};
+
 
 class CubemapTexture {
 

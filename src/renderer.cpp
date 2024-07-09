@@ -303,6 +303,18 @@ inline int to_gl_define(ShaderSrcType type) {
 	return -1;
 }
 
+uint to_gl(TextureFormat format) {
+	switch (format) {
+	case RGBA8:
+		return GL_RGB;
+		break;
+	case D24_S8:
+		return GL_DEPTH24_STENCIL8;
+		break;
+	}
+	return 0;
+}
+
 Mesh::Mesh() {
 	elements_count = 0;
 	vertex_count = 0;
@@ -449,7 +461,7 @@ void Texture::use_texture(uint id) {
 	glBindTexture(GL_TEXTURE_2D, gl_texture);
 }
 
-void Texture::set_rgb(uint width, uint heigth, unsigned char* data) {
+void Texture::set_rgb8(uint width, uint heigth, unsigned char* data) {
 	glBindTexture(GL_TEXTURE_2D, gl_texture);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, heigth, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
 	glGenerateMipmap(GL_TEXTURE_2D);
@@ -505,7 +517,7 @@ Texture* TextureImport::load_file(const char* path) {
 	}
 
 	Texture* texture = App::get_render_backend()->create_texture();
-	texture->set_rgb(width, heigth, data);
+	texture->set_rgb8(width, heigth, data);
 	stbi_image_free(data);
 	return nullptr;
 }
@@ -521,3 +533,53 @@ void Material::use_material() const {
 	}
 	shader->use_shader();
 }
+
+FrameBuffer::FrameBuffer() {
+	glGenFramebuffers(1, &gl_fbo);
+}
+
+void FrameBuffer::unbind_framebuffer() {
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
+
+bool FrameBuffer::is_complete() {
+	return glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE;
+}
+
+void FrameBuffer::use_framebuffer() {
+	glBindFramebuffer(GL_FRAMEBUFFER, gl_fbo);
+}
+
+void FrameBuffer::set_output_depth_stencil(Texture* texture) {
+	use_framebuffer();
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D, texture->get_gl_id(), 0);
+	unbind_framebuffer();
+}
+
+void FrameBuffer::set_output_depth_stencil(RenderBuffer* rbo) {
+	use_framebuffer();
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rbo->get_gl_id(), 0);
+	unbind_framebuffer();
+}
+
+void FrameBuffer::set_output_color(Texture* texture, uint id = 0) {
+	use_framebuffer();
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + id, GL_TEXTURE_2D, texture->get_gl_id(), 0);
+	unbind_framebuffer();
+}
+
+void FrameBuffer::set_output_color(RenderBuffer* rbo, uint id) {
+	use_framebuffer();
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + id, GL_RENDERBUFFER, rbo->get_gl_id(), 0);
+	unbind_framebuffer();
+}
+
+RenderBuffer::RenderBuffer() {
+	glGenRenderbuffers(1, &gl_rbo);
+}
+
+void RenderBuffer::set_format(TextureFormat format, vec2 size) {
+	glBindRenderbuffer(GL_RENDERBUFFER, gl_rbo);
+	glRenderbufferStorage(GL_RENDERBUFFER, to_gl(format), size.x, size.y);
+}
+
