@@ -215,7 +215,7 @@ public:
 	void set_format(TextureFormat format, vec2 size);
 };
 
-/// @brief When used, all render operations are drawn into the render buffer. Needs a texture or render buffer attached as output.
+/// @brief When used, all render operations are drawn into the frame buffer. Needs a texture or render buffer attached as output.
 class FrameBuffer {
 	GL_ID gl_fbo;
 

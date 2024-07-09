@@ -583,3 +583,4 @@ void RenderBuffer::set_format(TextureFormat format, vec2 size) {
 	glRenderbufferStorage(GL_RENDERBUFFER, to_gl(format), size.x, size.y);
 }
 
+
