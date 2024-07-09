@@ -461,7 +461,13 @@ void Texture::use_texture(uint id) {
 	glBindTexture(GL_TEXTURE_2D, gl_texture);
 }
 
-void Texture::set_rgb8(uint width, uint heigth, unsigned char* data) {
+void Texture::set_as_depth(uint width, uint heigth, unsigned char* data) {
+	glBindTexture(GL_TEXTURE_2D, gl_texture);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, width, heigth, 0, GL_DEPTH_COMPONENT, GL_FLOAT, data);
+	glGenerateMipmap(GL_TEXTURE_2D);
+}
+
+void Texture::set_as_rgb8(uint width, uint heigth, unsigned char* data) {
 	glBindTexture(GL_TEXTURE_2D, gl_texture);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, heigth, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
 	glGenerateMipmap(GL_TEXTURE_2D);
@@ -517,7 +523,7 @@ Texture* TextureImport::load_file(const char* path) {
 	}
 
 	Texture* texture = App::get_render_backend()->create_texture();
-	texture->set_rgb8(width, heigth, data);
+	texture->set_as_rgb8(width, heigth, data);
 	stbi_image_free(data);
 	return nullptr;
 }

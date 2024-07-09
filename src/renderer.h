@@ -199,7 +199,8 @@ public:
 public:
 	GL_ID get_gl_id() const { return gl_texture; }
 	void use_texture(uint id);
-	void set_rgb8(uint width, uint heigth, unsigned char* data);
+	void set_as_depth(uint width, uint heigth, unsigned char* data);
+	void set_as_rgb8(uint width, uint heigth, unsigned char* data);
 	void set_wrap(TextureWrap wrap);
 	void set_filter(TextureFilter wrap);
 };
@@ -278,6 +279,10 @@ struct Light {
 	vec3 position;
 	float intensity;
 	vec3 color;
+
+	bool cast_shadows;
+	FrameBuffer* shadow_fbo;
+	Texture* shadowmap;
 };
 
 template <typename T>
