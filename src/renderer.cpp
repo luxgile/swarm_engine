@@ -21,6 +21,10 @@ RendererBackend::RendererBackend() {
 	const GLubyte* version = glGetString(GL_VERSION); // version as a string
 	printf("Renderer: %s\n", renderer);
 	printf("OpenGL version supported %s\n", version);
+
+	// Load shadowmap shader
+	auto importer = ShaderImport();
+	shadowmap_shader = importer.load_file("E:/dev/Swarm/res/depth");
 }
 
 void RendererBackend::setup_gl() {
@@ -89,7 +93,24 @@ void RendererBackend::render_visuals_forward() {
 	}
 }
 void RendererBackend::render_shadowmaps() {
-	//FrameBuffer* shadow_fbo = create_frame;
+	FrameBuffer* shadow_fbo = frame_buffers.create();
+
+	for (auto light : lights) {
+		if (light->shadowmap->get_gl_id() == 0) {
+			light->shadowmap = textures.create();
+			light->shadowmap->set_as_depth(1024, 1024, NULL);
+		}
+
+		shadow_fbo->set_output_depth(light->shadowmap);
+		shadowmap_shader->use_shader();
+		// Update MVP
+		shadow_fbo->use_framebuffer();
+		glClear(GL_DEPTH_BUFFER_BIT);
+		// Render visuals here
+		FrameBuffer::unbind_framebuffer();
+	}
+
+	frame_buffers.destroy(shadow_fbo);
 }
 void RendererBackend::render_visuals_deferred() {
 	fprintf(stderr, "ERROR: DEFERRED NOT YET IMPLEMENTED.");
@@ -463,6 +484,12 @@ void Material::use_material() const {
 	shader->use_shader();
 }
 
+void FrameBuffer::set_format(uint attachment, uint texture_type, GL_ID id) {
+	use_framebuffer();
+	glFramebufferTexture2D(GL_FRAMEBUFFER, attachment, texture_type, id, 0);
+	unbind_framebuffer();
+}
+
 FrameBuffer::FrameBuffer() {
 	glGenFramebuffers(1, &gl_fbo);
 }
@@ -479,28 +506,29 @@ void FrameBuffer::use_framebuffer() {
 	glBindFramebuffer(GL_FRAMEBUFFER, gl_fbo);
 }
 
+void FrameBuffer::set_output_depth(Texture* texture) {
+	set_format(GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, texture->get_gl_id());
+}
+
+void FrameBuffer::set_output_depth(RenderBuffer* rbo) {
+	set_format(GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, rbo->get_gl_id());
+}
+
 void FrameBuffer::set_output_depth_stencil(Texture* texture) {
-	use_framebuffer();
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D, texture->get_gl_id(), 0);
-	unbind_framebuffer();
+	set_format(GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D, texture->get_gl_id());
 }
 
 void FrameBuffer::set_output_depth_stencil(RenderBuffer* rbo) {
-	use_framebuffer();
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rbo->get_gl_id(), 0);
-	unbind_framebuffer();
+	set_format(GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D, rbo->get_gl_id());
 }
 
 void FrameBuffer::set_output_color(Texture* texture, uint id = 0) {
-	use_framebuffer();
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + id, GL_TEXTURE_2D, texture->get_gl_id(), 0);
-	unbind_framebuffer();
+	set_format(GL_COLOR_ATTACHMENT0 + id, GL_TEXTURE_2D, texture->get_gl_id());
 }
 
 void FrameBuffer::set_output_color(RenderBuffer* rbo, uint id) {
-	use_framebuffer();
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + id, GL_RENDERBUFFER, rbo->get_gl_id(), 0);
-	unbind_framebuffer();
+	set_format(GL_COLOR_ATTACHMENT0 + id, GL_TEXTURE_2D, rbo->get_gl_id());
+
 }
 
 RenderBuffer::RenderBuffer() {

@@ -152,12 +152,16 @@ public:
 class FrameBuffer {
 	GL_ID gl_fbo;
 
+	void set_format(uint attachment, uint texture_type, GL_ID id);
+
 public:
 	FrameBuffer();
 
 	static void unbind_framebuffer();
 	bool is_complete();
 	void use_framebuffer();
+	void set_output_depth(Texture* texture);
+	void set_output_depth(RenderBuffer* rbo);
 	void set_output_depth_stencil(Texture* texture);
 	void set_output_depth_stencil(RenderBuffer* rbo);
 	void set_output_color(Texture* texture, uint id);
@@ -237,18 +241,22 @@ public:
 };
 
 class RendererBackend {
+private:
+	Shader* shadowmap_shader;
+
 public:
 	vec3 clear_color = vec3(1.0f);
 	vec3 ambient_color = vec3(0.3f, 0.3f, 0.1f);
 	float ambient_intensity = 0.3f;
 	RenderMode mode = RenderMode::Forward;
 
-	//TODO: Create an actual mempool to avoid all this shit.
 	std::vector<Window*> windows;
 	MemPool<Shader> shaders;
 	MemPool<Mesh> meshes;
 	MemPool<Model> models;
 	MemPool<Texture> textures;
+	MemPool<RenderBuffer> render_buffers;
+	MemPool<FrameBuffer> frame_buffers;
 	MemPool<Camera> cameras;
 	MemPool<Light> lights;
 	MemPool<Material> materials;
@@ -269,30 +277,6 @@ public:
 
 	Window* create_window(ivec2 size, string title);
 	void destroy_window(Window* wnd);
-
-	//Shader* create_shader();
-	//void destroy_shader(Shader* shader);
-
-	//Material* create_material();
-	//void destroy_material(Material* material);
-
-	//Mesh* create_mesh();
-	//void destroy_mesh(Mesh* mesh);
-
-	//Model* create_model();
-	//void destroy_model(Model* model);
-
-	//Texture* create_texture();
-	//void destroy_texture(Texture* texture);
-
-	//Light* create_light();
-	//void destroy_ligth(Light* light);
-
-	//Camera* create_camera();
-	//void destroy_camera(Camera* camera);
-
-	//Visual* create_visual();
-	//void destroy_visual(Visual* mesh);
 
 	void draw_visuals();
 	void update_shader_globals();

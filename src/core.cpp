@@ -113,3 +113,15 @@ void App::app_loop() {
 	}
 }
 
+mat4 Transform::get_matrix() {
+	
+	if (!is_cached) {
+		cached_matrix = glm::identity<mat4>();
+		cached_matrix = glm::scale(cached_matrix, scale);
+		cached_matrix *= glm::mat4_cast(rotation);
+		cached_matrix = glm::translate(cached_matrix, position);
+		is_cached = true;
+	}
+
+	return cached_matrix;
+}

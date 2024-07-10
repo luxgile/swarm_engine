@@ -1,9 +1,9 @@
-#ifndef CORE_HEADER
-#define CORE_HEADER
+#pragma once
 
 #include <memory>
 #include "renderer.h"
-
+#define GLM_ENABLE_EXPERIMENTAL
+#include "glm/gtx/quaternion.hpp"
 
 class App {
 private:
@@ -29,4 +29,14 @@ public:
 	void app_loop();
 };
 
-#endif // !CORE_HEADER
+class Transform {
+	bool is_cached;
+	vec3 position;
+	quat rotation;
+	vec3 scale;
+
+	mat4 cached_matrix;
+
+	public:
+	mat4 get_matrix();
+};
