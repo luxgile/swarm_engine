@@ -45,77 +45,7 @@ void RendererBackend::destroy_window(Window* wnd) {
 	windows.erase(std::remove(windows.begin(), windows.end(), wnd), windows.end());
 }
 
-Shader* RendererBackend::create_shader() {
-	Shader* shader = new Shader();
-	shaders.push_back(shader);
-	return shader;
-}
-
-void RendererBackend::destroy_shader(Shader* shader) {
-	shaders.erase(std::remove(shaders.begin(), shaders.end(), shader), shaders.end());
-}
-
-Material* RendererBackend::create_material() {
-	Material* material = new Material();
-	materials.push_back(material);
-	return material;
-}
-
-void RendererBackend::destroy_material(Material* material) {
-	materials.erase(std::remove(materials.begin(), materials.end(), material), materials.end());
-}
-
-Mesh* RendererBackend::create_mesh() {
-	Mesh* mesh = new Mesh();
-	meshes.push_back(mesh);
-	return mesh;
-}
-
-void RendererBackend::destroy_mesh(Mesh* mesh) {
-	meshes.erase(std::remove(meshes.begin(), meshes.end(), mesh), meshes.end());
-}
-
-Model* RendererBackend::create_model() {
-	Model* model = new Model();
-	models.push_back(model);
-	return model;
-}
-
-void RendererBackend::destroy_model(Model* model) {
-	models.erase(std::remove(models.begin(), models.end(), model), models.end());
-}
-
-Texture* RendererBackend::create_texture() {
-	Texture* texture = new Texture();
-	textures.push_back(texture);
-	return texture;
-}
-
-void RendererBackend::destroy_texture(Texture* texture) {
-	textures.erase(std::remove(textures.begin(), textures.end(), texture), textures.end());
-}
-
-Light* RendererBackend::create_light() {
-	Light* light = new Light();
-	lights.push_back(light);
-	return light;
-}
-
-void RendererBackend::destroy_ligth(Light* point_ligth) {
-	lights.erase(std::remove(lights.begin(), lights.end(), point_ligth), lights.end());
-}
-
-Camera* RendererBackend::create_camera() {
-	Camera* camera = new Camera();
-	cameras.push_back(camera);
-	return camera;
-}
-
-void RendererBackend::destroy_camera(Camera* camera) {
-	cameras.erase(std::remove(cameras.begin(), cameras.end(), camera), cameras.end());
-}
-
-Camera* RendererBackend::get_current_camera() {
+Camera* RendererBackend::get_active_camera() {
 	Camera* active = nullptr;
 	int min_priority = 999999;
 	for (auto c : cameras) {
@@ -125,16 +55,6 @@ Camera* RendererBackend::get_current_camera() {
 		}
 	}
 	return active;
-}
-
-Visual* RendererBackend::create_visual() {
-	Visual* v = new Visual();
-	visuals.push_back(v);
-	return v;
-}
-
-void RendererBackend::destroy_visual(Visual* v) {
-	visuals.erase(std::remove(visuals.begin(), visuals.end(), v), visuals.end());
 }
 
 void RendererBackend::draw_visuals() {
@@ -149,7 +69,7 @@ void RendererBackend::draw_visuals() {
 }
 
 void RendererBackend::render_visuals_forward() {
-	auto camera = get_current_camera();
+	auto camera = get_active_camera();
 
 	glClearColor(clear_color.r, clear_color.g, clear_color.b, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -168,13 +88,16 @@ void RendererBackend::render_visuals_forward() {
 		}
 	}
 }
+void RendererBackend::render_shadowmaps() {
+	//FrameBuffer* shadow_fbo = create_frame;
+}
 void RendererBackend::render_visuals_deferred() {
 	fprintf(stderr, "ERROR: DEFERRED NOT YET IMPLEMENTED.");
 }
 
 void RendererBackend::update_shader_globals() {
-	auto camera = get_current_camera();
-	for (auto shader : shaders) {
+	auto camera = get_active_camera();
+	for (Shader* shader : shaders) {
 		shader->set_vec3("viewPos", camera->get_view_mat()[3]);
 		shader->set_vec3("ambientColor", ambient_color);
 		shader->set_float("ambient", ambient_intensity);
@@ -366,7 +289,7 @@ Shader* ShaderImport::load_file(const char* path) {
 	auto frag = utils::load_text(string(path).append(".frag").c_str());
 
 	auto render_bd = App::get_render_backend();
-	Shader* shader = render_bd->create_shader();
+	Shader* shader = render_bd->shaders.create();
 	shader->compile_shader(vert.c_str(), frag.c_str());
 	return shader;
 }
@@ -379,7 +302,7 @@ Model* ModelImport::load_file(const char* path) {
 		fprintf(stderr, "ERROR: loading model failed: %s\n", importer.GetErrorString());
 	}
 
-	Model* model = App::get_render_backend()->create_model();
+	Model* model = App::get_render_backend()->models.create();
 	process_ai_node(model, scene->mRootNode, scene);
 	return model;
 }
@@ -446,7 +369,7 @@ Mesh* ModelImport::process_ai_mesh(aiMesh* mesh, const aiScene* scene) {
 		//textures.insert(textures.end(), specularMaps.begin(), specularMaps.end());
 	}
 
-	Mesh* gpu_mesh = App::get_render_backend()->create_mesh();
+	Mesh* gpu_mesh = App::get_render_backend()->meshes.create();
 	gpu_mesh->set_vertices(vertices);
 	gpu_mesh->set_triangles(indices);
 	return gpu_mesh;
@@ -522,7 +445,7 @@ Texture* TextureImport::load_file(const char* path) {
 		return nullptr;
 	}
 
-	Texture* texture = App::get_render_backend()->create_texture();
+	Texture* texture = App::get_render_backend()->textures.create();
 	texture->set_as_rgb8(width, heigth, data);
 	stbi_image_free(data);
 	return nullptr;

@@ -32,39 +32,39 @@ void App::app_loop() {
 	auto texture_importer = TextureImport();
 	auto uv_texture = texture_importer.load_file("E:/dev/Swarm/res/uv_texture.png");
 
-	auto material = render->create_material();
+	auto material = render->materials.create();
 	material->set_shader(shader);
 	material->set_texture(SamplerID::Albedo, uv_texture);
 
-	auto monkey_visual = render->create_visual();
+	auto monkey_visual = render->visuals.create();
 	monkey_visual->set_model(monkey_model);
 	monkey_visual->set_material(material);
 
-	auto floor_visual = render->create_visual();
+	auto floor_visual = render->visuals.create();
 	floor_visual->set_model(floor_model);
 	floor_visual->set_material(material);
 	floor_visual->set_xform(glm::translate(glm::scale(glm::identity<mat4>(), vec3(25.0f, 0.1f, 25.0f)), vec3(0, -10.0f, 0)));
 
-	auto ligth = render->create_light();
+	auto ligth = render->lights.create();
 	ligth->type = LightType::Point;
 	ligth->position = vec3(3.0, 1.0, -1.0);
 	ligth->color = vec3(1.0f, 0.8f, 0.8f);
 	ligth->intensity = 3.0f;
 
-	auto ligth2 = render->create_light();
+	auto ligth2 = render->lights.create();
 	ligth2->type = LightType::Point;
 	ligth2->position = vec3(-3.0, 1.0, -1.0);
 	ligth2->color = vec3(0.3, 0.4, 0.8);
 	ligth2->intensity = 7.0f;
 
-	auto sun = render->create_light();
+	auto sun = render->lights.create();
 	sun->type = LightType::Directional;
 	sun->dir = glm::normalize(vec3(0.3, -0.5, 0.2));
 	sun->color = vec3(1.0, 1.0, 1.0);
 	sun->intensity = 1.0f;
 
 	auto proj = glm::perspectiveFov(70.0f, 1280.0f, 720.0f, 0.1f, 100.0f);
-	auto camera = render->create_camera();
+	auto camera = render->cameras.create();
 	camera->set_proj(70.0f, vec2(1280.0f, 720.0f), vec2(0.1f, 100.0f));
 	camera->set_view(vec3(0, 3, -7), vec3(0, 0, 0), vec3(0, 1, 0));
 	render->clear_color = vec3(0.2, 0.1, 0.3);

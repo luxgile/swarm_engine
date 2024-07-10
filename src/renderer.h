@@ -11,6 +11,7 @@
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
+#include "MemPool.h"
 
 typedef unsigned int GL_ID;
 typedef unsigned int uint;
@@ -18,80 +19,11 @@ typedef unsigned int uint;
 using namespace glm;
 using namespace std;
 
-class Window;
-class Shader;
-class Mesh;
-class Model;
-class Visual;
-class Camera;
-class Light;
-class Texture;
-class Material;
-
 enum RenderMode {
 	Forward,
 	Deferred,
 };
 
-class RendererBackend {
-public:
-	vec3 clear_color = vec3(1.0f);
-	vec3 ambient_color = vec3(0.3f, 0.3f, 0.1f);
-	float ambient_intensity = 0.3f;
-	RenderMode mode = RenderMode::Forward;
-
-	//TODO: Create an actual mempool to avoid all this shit.
-	std::vector<Window*> windows;
-	std::vector<Shader*> shaders;
-	std::vector<Mesh*> meshes;
-	std::vector<Model*> models;
-	std::vector<Texture*> textures;
-	std::vector<Camera*> cameras;
-	std::vector<Light*> lights;
-	std::vector<Material*> materials;
-	std::vector<Visual*> visuals;
-
-private:
-	void setup_gl();
-	void setup_glew();
-
-	void render_visuals_forward();
-	void render_visuals_deferred();
-
-public:
-	RendererBackend();
-
-	Window* create_window(ivec2 size, string title);
-	void destroy_window(Window* wnd);
-
-	Shader* create_shader();
-	void destroy_shader(Shader* shader);
-
-	Material* create_material();
-	void destroy_material(Material* material);
-
-	Mesh* create_mesh();
-	void destroy_mesh(Mesh* mesh);
-
-	Model* create_model();
-	void destroy_model(Model* model);
-
-	Texture* create_texture();
-	void destroy_texture(Texture* texture);
-
-	Light* create_light();
-	void destroy_ligth(Light* light);
-
-	Camera* create_camera();
-	void destroy_camera(Camera* camera);
-	Camera* get_current_camera();
-
-	Visual* create_visual();
-	void destroy_visual(Visual* mesh);
-
-	void draw_visuals();
-	void update_shader_globals();
-};
 
 class Window {
 public:
@@ -281,7 +213,6 @@ struct Light {
 	vec3 color;
 
 	bool cast_shadows;
-	FrameBuffer* shadow_fbo;
 	Texture* shadowmap;
 };
 
@@ -303,4 +234,68 @@ public:
 class TextureImport : FileImport<Texture> {
 public:
 	Texture* load_file(const char* path) override;
+};
+
+class RendererBackend {
+public:
+	vec3 clear_color = vec3(1.0f);
+	vec3 ambient_color = vec3(0.3f, 0.3f, 0.1f);
+	float ambient_intensity = 0.3f;
+	RenderMode mode = RenderMode::Forward;
+
+	//TODO: Create an actual mempool to avoid all this shit.
+	std::vector<Window*> windows;
+	MemPool<Shader> shaders;
+	MemPool<Mesh> meshes;
+	MemPool<Model> models;
+	MemPool<Texture> textures;
+	MemPool<Camera> cameras;
+	MemPool<Light> lights;
+	MemPool<Material> materials;
+	MemPool<Visual> visuals;
+
+private:
+	void setup_gl();
+	void setup_glew();
+
+
+	void render_visuals_forward();
+	void render_shadowmaps();
+
+	void render_visuals_deferred();
+
+public:
+	RendererBackend();
+
+	Window* create_window(ivec2 size, string title);
+	void destroy_window(Window* wnd);
+
+	//Shader* create_shader();
+	//void destroy_shader(Shader* shader);
+
+	//Material* create_material();
+	//void destroy_material(Material* material);
+
+	//Mesh* create_mesh();
+	//void destroy_mesh(Mesh* mesh);
+
+	//Model* create_model();
+	//void destroy_model(Model* model);
+
+	//Texture* create_texture();
+	//void destroy_texture(Texture* texture);
+
+	//Light* create_light();
+	//void destroy_ligth(Light* light);
+
+	//Camera* create_camera();
+	//void destroy_camera(Camera* camera);
+
+	//Visual* create_visual();
+	//void destroy_visual(Visual* mesh);
+
+	void draw_visuals();
+	void update_shader_globals();
+
+	Camera* get_active_camera();
 };

@@ -138,6 +138,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\core.h" />
+    <ClInclude Include="src\MemPool.h" />
     <ClInclude Include="src\renderer.h" />
   </ItemGroup>
   <ItemGroup>
