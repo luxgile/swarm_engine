@@ -52,6 +52,8 @@
     <None Include="vcpkg-configuration.json" />
     <None Include="res\monkey.glb" />
     <None Include="res\cube.glb" />
+    <None Include="res\depth.vert" />
+    <None Include="res\depth.frag" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="res\uv_texture.png">

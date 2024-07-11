@@ -205,6 +205,12 @@ public:
 	Material* get_material() { return material; }
 };
 
+struct ShadowMap {
+	Texture* shadowmap;
+	
+	ShadowMap();
+};
+
 enum LightType {
 	Point = 0,
 	Directional,
@@ -216,8 +222,16 @@ struct Light {
 	float intensity;
 	vec3 color;
 
+	mat4 build_view_matrix();
+	mat4 build_proj_matrix();
+
+	void set_cast_shadows(bool state);
+	bool get_cast_shadows() { return cast_shadows;  }
+	ShadowMap* get_shadow_map() const;
+
+private:
+	ShadowMap* shadow_map;
 	bool cast_shadows;
-	Texture* shadowmap;
 };
 
 template <typename T>
@@ -242,7 +256,7 @@ public:
 
 class RendererBackend {
 private:
-	Shader* shadowmap_shader;
+	Material* shadowmap_mat;
 
 public:
 	vec3 clear_color = vec3(1.0f);
@@ -259,6 +273,7 @@ public:
 	MemPool<FrameBuffer> frame_buffers;
 	MemPool<Camera> cameras;
 	MemPool<Light> lights;
+	MemPool<ShadowMap> shadow_maps;
 	MemPool<Material> materials;
 	MemPool<Visual> visuals;
 
@@ -266,19 +281,21 @@ private:
 	void setup_gl();
 	void setup_glew();
 
-
 	void render_visuals_forward();
 	void render_shadowmaps();
 
 	void render_visuals_deferred();
 
+	void render_visuals(mat4 proj, mat4 view, Material* mat_override);
+
 public:
 	RendererBackend();
+	void setup_internals();
 
 	Window* create_window(ivec2 size, string title);
 	void destroy_window(Window* wnd);
 
-	void draw_visuals();
+	void render_frame();
 	void update_shader_globals();
 
 	Camera* get_active_camera();

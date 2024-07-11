@@ -144,6 +144,8 @@
   <ItemGroup>
     <None Include=".gitignore" />
     <None Include="res\cube.glb" />
+    <None Include="res\depth.frag" />
+    <None Include="res\depth.vert" />
     <None Include="res\monkey.glb" />
     <None Include="res\pbr.frag" />
     <None Include="res\pbr.vert" />

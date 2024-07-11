@@ -5,7 +5,7 @@
 
 template <typename T>
 class MemPool {
-	std::vector<T*> items;
+	std::vector<T*> items = std::vector<T*>();
 
 public:
 	T* create() {

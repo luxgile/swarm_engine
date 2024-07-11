@@ -13,6 +13,7 @@ App::App() {
 	singleton = this;
 
 	render_backend = std::make_unique<RendererBackend>();
+	render_backend.get()->setup_internals();
 }
 
 void App::app_loop() {
@@ -58,6 +59,7 @@ void App::app_loop() {
 	ligth2->intensity = 7.0f;
 
 	auto sun = render->lights.create();
+	sun->set_cast_shadows(true);
 	sun->type = LightType::Directional;
 	sun->dir = glm::normalize(vec3(0.3, -0.5, 0.2));
 	sun->color = vec3(1.0, 1.0, 1.0);
@@ -99,7 +101,7 @@ void App::app_loop() {
 		monkey_visual->set_xform(xform);
 
 		// Render here
-		render->draw_visuals();
+		render->render_frame();
 
 		// End frame for all windows
 		for (auto wnd : render->windows) {

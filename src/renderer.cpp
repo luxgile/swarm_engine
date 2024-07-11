@@ -21,10 +21,6 @@ RendererBackend::RendererBackend() {
 	const GLubyte* version = glGetString(GL_VERSION); // version as a string
 	printf("Renderer: %s\n", renderer);
 	printf("OpenGL version supported %s\n", version);
-
-	// Load shadowmap shader
-	auto importer = ShaderImport();
-	shadowmap_shader = importer.load_file("E:/dev/Swarm/res/depth");
 }
 
 void RendererBackend::setup_gl() {
@@ -37,6 +33,13 @@ void RendererBackend::setup_gl() {
 void RendererBackend::setup_glew() {
 	glewExperimental = GL_TRUE;
 	glewInit();
+}
+
+void RendererBackend::setup_internals() {
+	auto importer = ShaderImport();
+	auto shadowmap_shader = importer.load_file("E:/dev/Swarm/res/depth");
+	shadowmap_mat = materials.create();
+	shadowmap_mat->set_shader(shadowmap_shader);
 }
 
 Window* RendererBackend::create_window(ivec2 size, string title) {
@@ -61,7 +64,7 @@ Camera* RendererBackend::get_active_camera() {
 	return active;
 }
 
-void RendererBackend::draw_visuals() {
+void RendererBackend::render_frame() {
 	switch (mode) {
 	case Forward:
 		render_visuals_forward();
@@ -79,34 +82,27 @@ void RendererBackend::render_visuals_forward() {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	update_shader_globals();
-
-	for (auto v : visuals) {
-		auto mvp = camera->get_proj_mat() * camera->get_view_mat() * *v->get_xform();
-		v->get_material()->use_material();
-		v->get_material()->get_shader()->set_matrix4("matModel", *v->get_xform());
-		v->get_material()->get_shader()->set_matrix4("mvp", mvp);
-
-		for (auto mesh : v->get_model()->meshes) {
-			mesh->use_mesh();
-			glDrawElements(GL_TRIANGLES, mesh->get_elements_count(), GL_UNSIGNED_INT, 0);
-		}
-	}
+	render_shadowmaps();
+	render_visuals(camera->get_proj_mat(), camera->get_view_mat(), nullptr);
 }
 void RendererBackend::render_shadowmaps() {
 	FrameBuffer* shadow_fbo = frame_buffers.create();
 
 	for (auto light : lights) {
-		if (light->shadowmap->get_gl_id() == 0) {
-			light->shadowmap = textures.create();
-			light->shadowmap->set_as_depth(1024, 1024, NULL);
+		if (!light->get_cast_shadows()) continue;
+		auto sm = light->get_shadow_map();
+		if (sm->shadowmap->get_gl_id() == 0) {
+			sm->shadowmap = textures.create();
+			sm->shadowmap->set_as_depth(1024, 1024, NULL);
 		}
 
-		shadow_fbo->set_output_depth(light->shadowmap);
-		shadowmap_shader->use_shader();
-		// Update MVP
+		auto proj = light->build_proj_matrix();
+		auto view = light->build_view_matrix();
+
+		shadow_fbo->set_output_depth(sm->shadowmap);
 		shadow_fbo->use_framebuffer();
 		glClear(GL_DEPTH_BUFFER_BIT);
-		// Render visuals here
+		render_visuals(proj, view, shadowmap_mat);
 		FrameBuffer::unbind_framebuffer();
 	}
 
@@ -114,6 +110,21 @@ void RendererBackend::render_shadowmaps() {
 }
 void RendererBackend::render_visuals_deferred() {
 	fprintf(stderr, "ERROR: DEFERRED NOT YET IMPLEMENTED.");
+}
+
+void RendererBackend::render_visuals(mat4 proj, mat4 view, Material* mat_override = nullptr) {
+	for (auto v : visuals) {
+		auto mvp = proj * view * *v->get_xform();
+		auto mat = mat_override ? mat_override : v->get_material();
+		mat->use_material();
+		mat->get_shader()->set_matrix4("matModel", *v->get_xform());
+		mat->get_shader()->set_matrix4("mvp", mvp);
+
+		for (auto mesh : v->get_model()->meshes) {
+			mesh->use_mesh();
+			glDrawElements(GL_TRIANGLES, mesh->get_elements_count(), GL_UNSIGNED_INT, 0);
+		}
+	}
 }
 
 void RendererBackend::update_shader_globals() {
@@ -163,7 +174,7 @@ unsigned int Shader::compile_source(ShaderSrcType type, const char* src) {
 	if (!success) {
 		char infoLog[512];
 		glGetShaderInfoLog(compiled, 512, NULL, infoLog);
-		std::cout << "ERROR::SHADER::VERTEX::COMPILATION_FAILED\n" << infoLog << std::endl;
+		std::cout << "ERROR::SHADER::COMPILATION_FAILED\n" << infoLog << std::endl;
 	};
 	return compiled;
 }
@@ -540,4 +551,32 @@ void RenderBuffer::set_format(TextureFormat format, vec2 size) {
 	glRenderbufferStorage(GL_RENDERBUFFER, to_gl(format), size.x, size.y);
 }
 
+mat4 Light::build_view_matrix() {
+	if (type == LightType::Directional) return glm::lookAt(-dir * 10.0f, vec3(0.0f), vec3(0.0f, 1.0f, 0.0f));
+	return glm::lookAt(position, position + dir, vec3(0, 1, 0));
+}
 
+mat4 Light::build_proj_matrix() {
+	switch (type) {
+	case Directional:
+		return glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, 1.0f, 20.0f);
+	case Point:
+	default:
+		return glm::identity<mat4>();
+	}
+}
+
+void Light::set_cast_shadows(bool state) {
+	cast_shadows = state;
+	if (state) shadow_map = App::get_render_backend()->shadow_maps.create();
+	else App::get_render_backend()->shadow_maps.destroy(shadow_map);
+}
+
+ShadowMap* Light::get_shadow_map() const {
+	if (!cast_shadows) return nullptr;
+	return shadow_map;
+}
+
+ShadowMap::ShadowMap() {
+	shadowmap = App::get_render_backend()->textures.create();
+}
