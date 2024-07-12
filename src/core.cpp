@@ -25,6 +25,7 @@ void App::app_loop() {
 	shader->set_sampler_id("mraMap", SamplerID::MRA);
 	shader->set_sampler_id("normalMap", SamplerID::Normal);
 	shader->set_sampler_id("emissiveMap", SamplerID::Emissive);
+	shader->set_sampler_id("shadowMaps", SamplerID::Shadows);
 
 	auto model_importer = ModelImport();
 	auto monkey_model = model_importer.load_file("E:/dev/Swarm/res/monkey.glb");

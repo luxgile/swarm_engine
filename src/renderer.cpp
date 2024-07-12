@@ -6,6 +6,7 @@
 #include "stb_image.h"
 
 using namespace std;
+const int SHADOW_RES = 1024;
 
 RendererBackend::RendererBackend() {
 	setup_gl();
@@ -40,6 +41,8 @@ void RendererBackend::setup_internals() {
 	auto shadowmap_shader = importer.load_file("E:/dev/Swarm/res/depth");
 	shadowmap_mat = materials.create();
 	shadowmap_mat->set_shader(shadowmap_shader);
+
+	shadows_fbo = frame_buffers.create();
 }
 
 Window* RendererBackend::create_window(ivec2 size, string title) {
@@ -76,37 +79,40 @@ void RendererBackend::render_frame() {
 }
 
 void RendererBackend::render_visuals_forward() {
-	auto camera = get_active_camera();
-
+	render_shadowmaps();
+	update_material_globals();
 	glClearColor(clear_color.r, clear_color.g, clear_color.b, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	update_shader_globals();
-	render_shadowmaps();
+	auto camera = get_active_camera();
 	render_visuals(camera->get_proj_mat(), camera->get_view_mat(), nullptr);
 }
+
 void RendererBackend::render_shadowmaps() {
-	FrameBuffer* shadow_fbo = frame_buffers.create();
 
 	for (auto light : lights) {
 		if (!light->get_cast_shadows()) continue;
 		auto sm = light->get_shadow_map();
-		if (sm->shadowmap->get_gl_id() == 0) {
-			sm->shadowmap = textures.create();
-			sm->shadowmap->set_as_depth(1024, 1024, NULL);
-		}
 
 		auto proj = light->build_proj_matrix();
 		auto view = light->build_view_matrix();
 
-		shadow_fbo->set_output_depth(sm->shadowmap);
-		shadow_fbo->use_framebuffer();
-		glClear(GL_DEPTH_BUFFER_BIT);
+		shadows_fbo->set_output_depth(sm->shadowmap);
+		if (!shadows_fbo->is_complete()) {
+			fprintf(stderr, "ERROR: Shadowmap frame buffer is incompleted. Some shadows might be missing");
+			continue;
+		}
+		glViewport(0, 0, SHADOW_RES, SHADOW_RES);
+		shadows_fbo->use_framebuffer();
+
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		sm->shadowmap->use_texture(SamplerID::Albedo);
 		render_visuals(proj, view, shadowmap_mat);
+
 		FrameBuffer::unbind_framebuffer();
+		glViewport(0, 0, 1280, 720);
 	}
 
-	frame_buffers.destroy(shadow_fbo);
 }
 void RendererBackend::render_visuals_deferred() {
 	fprintf(stderr, "ERROR: DEFERRED NOT YET IMPLEMENTED.");
@@ -127,9 +133,10 @@ void RendererBackend::render_visuals(mat4 proj, mat4 view, Material* mat_overrid
 	}
 }
 
-void RendererBackend::update_shader_globals() {
+void RendererBackend::update_material_globals() {
 	auto camera = get_active_camera();
-	for (Shader* shader : shaders) {
+	for (auto material : materials) {
+		auto shader = material->get_shader();
 		shader->set_vec3("viewPos", camera->get_view_mat()[3]);
 		shader->set_vec3("ambientColor", ambient_color);
 		shader->set_float("ambient", ambient_intensity);
@@ -143,6 +150,12 @@ void RendererBackend::update_shader_globals() {
 			shader->set_vec3((ligth_access_std + "direction").c_str(), light->dir);
 			shader->set_vec3((ligth_access_std + "color").c_str(), light->color);
 			shader->set_float((ligth_access_std + "intensity").c_str(), light->intensity);
+
+			if (light->get_cast_shadows()) {
+				auto sm = light->get_shadow_map();
+				shader->set_matrix4("matLight", light->build_proj_matrix() * light->build_view_matrix());
+				material->set_texture(SamplerID::Shadows, sm->shadowmap);
+			}
 		}
 	}
 }
@@ -209,41 +222,49 @@ void Shader::set_sampler_id(string uniform, SamplerID id) {
 }
 
 void Shader::set_sampler_id(string uniform, uint id) {
+	use_shader();
 	unsigned int uniform_loc = glGetUniformLocation(gl_program, uniform.c_str());
 	glUniform1i(uniform_loc, id);
 }
 
 void Shader::set_bool(const char* uniform, bool value) const {
+	use_shader();
 	unsigned int uniform_loc = glGetUniformLocation(gl_program, uniform);
 	glUniform1i(uniform_loc, (int)value);
 }
 
 void Shader::set_int(const char* uniform, int value) const {
+	use_shader();
 	unsigned int uniform_loc = glGetUniformLocation(gl_program, uniform);
 	glUniform1i(uniform_loc, value);
 }
 
 void Shader::set_float(const char* uniform, float value) const {
+	use_shader();
 	unsigned int uniform_loc = glGetUniformLocation(gl_program, uniform);
 	glUniform1f(uniform_loc, value);
 }
 
 void Shader::set_vec2(const char* uniform, vec2 value) const {
+	use_shader();
 	unsigned int uniform_loc = glGetUniformLocation(gl_program, uniform);
 	glUniform2f(uniform_loc, value.x, value.y);
 }
 
 void Shader::set_vec3(const char* uniform, vec3 value) const {
+	use_shader();
 	unsigned int uniform_loc = glGetUniformLocation(gl_program, uniform);
 	glUniform3f(uniform_loc, value.x, value.y, value.z);
 }
 
 void Shader::set_vec4(const char* uniform, vec4 value) const {
+	use_shader();
 	unsigned int uniform_loc = glGetUniformLocation(gl_program, uniform);
 	glUniform4f(uniform_loc, value.x, value.y, value.z, value.w);
 }
 
 void Shader::set_matrix4(const char* uniform, mat4 matrix) const {
+	use_shader();
 	unsigned int uniform_loc = glGetUniformLocation(gl_program, uniform);
 	glUniformMatrix4fv(uniform_loc, 1, GL_FALSE, glm::value_ptr(matrix));
 }
@@ -468,6 +489,11 @@ void Texture::set_filter(TextureFilter filter) {
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, gl_mm_filter);
 }
 
+void Texture::set_border_color(vec4 color) {
+	glBindTexture(GL_TEXTURE_2D, gl_texture);
+	glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, &color.x);
+}
+
 Texture* TextureImport::load_file(const char* path) {
 	fprintf(stderr, "INFO: Loading texture at: %s\n", path);
 	int width, heigth, nrChannels;
@@ -480,7 +506,7 @@ Texture* TextureImport::load_file(const char* path) {
 	Texture* texture = App::get_render_backend()->textures.create();
 	texture->set_as_rgb8(width, heigth, data);
 	stbi_image_free(data);
-	return nullptr;
+	return texture;
 }
 
 Material::Material() {
@@ -559,7 +585,7 @@ mat4 Light::build_view_matrix() {
 mat4 Light::build_proj_matrix() {
 	switch (type) {
 	case Directional:
-		return glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, 1.0f, 20.0f);
+		return glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, 1.0f, 120.0f);
 	case Point:
 	default:
 		return glm::identity<mat4>();
@@ -579,4 +605,8 @@ ShadowMap* Light::get_shadow_map() const {
 
 ShadowMap::ShadowMap() {
 	shadowmap = App::get_render_backend()->textures.create();
+	shadowmap->set_as_depth(SHADOW_RES, SHADOW_RES, NULL);
+	shadowmap->set_filter(TextureFilter::Nearest);
+	shadowmap->set_wrap(TextureWrap::Repeat);
+	shadowmap->set_border_color(vec4(1.0, 1.0, 1.0, 1.0));
 }

@@ -19,7 +19,7 @@ in vec3 fragPosition;
 in vec2 fragTexCoord;
 in vec3 fragColor;
 in vec3 fragNormal;
-in vec4 shadowPos;
+in vec4 fragLightSpace;
 in mat3 TBN;
 
 // Output fragment color
@@ -49,6 +49,7 @@ uniform float aoValue = 1;
 uniform float emissivePower;
 
 // Input lighting values
+uniform sampler2D shadowMaps;
 uniform Light lights[MAX_LIGHTS];
 uniform vec3 viewPos;
 
@@ -78,6 +79,16 @@ float GeomSmith(float nDotV,float nDotL,float roughness)
     float ggx1 = nDotV/(nDotV*ik + k);
     float ggx2 = nDotL/(nDotL*ik + k);
     return ggx1*ggx2;
+}
+
+float Shadows(vec4 fragPosLightSpace, int lightIndex) 
+{
+    vec3 projCoords = fragPosLightSpace.xyz / fragPosLightSpace.w;
+    projCoords = projCoords * 0.5 + 0.5;
+    float closestDepth = texture(shadowMaps, projCoords.xy).r; 
+    float currentDepth = projCoords.z;
+    float shadow = currentDepth > closestDepth  ? 1.0 : 0.0;
+    return shadow;
 }
 
 vec3 ComputePBR()
@@ -149,6 +160,9 @@ vec3 ComputePBR()
         
         // Mult kD by the inverse of metallnes, only non-metals should have diffuse light
         kD *= 1.0 - metallic;
+
+        float shadow = Shadows(fragLightSpace, i);
+        radiance = radiance + (1.0 - shadow);
         lightAccum += ((kD*albedo.rgb/PI + spec)*radiance*nDotL)*lights[i].enabled; // Angle of light has impact on result
 //         lightAccum += radiance;
     }

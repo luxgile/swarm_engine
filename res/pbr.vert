@@ -11,12 +11,14 @@ layout (location = 4) in vec2 aCoords;
 uniform mat4 mvp;
 uniform mat4 matModel;
 uniform mat4 matNormal;
+uniform mat4 matLight;
 
 // Output vertex attributes (to fragment shader)
 out vec3 fragPosition;
 out vec2 fragTexCoord;
 out vec3 fragColor;
 out vec3 fragNormal;
+out vec4 fragLightSpace;
 out mat3 TBN;
 
 const float normalOffset = 0.1;
@@ -42,6 +44,8 @@ void main()
     TBN = transpose(mat3(fragTangent, fragBinormal, fragNormal));
 
     fragColor = aColor;
+
+    fragLightSpace = matLight * vec4(fragPosition, 1.0);
 
     // Calculate final vertex position
     gl_Position = mvp*vec4(aPos, 1.0);

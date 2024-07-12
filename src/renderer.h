@@ -59,6 +59,7 @@ enum SamplerID {
 	Normal,
 	MRA,
 	Emissive,
+	Shadows,
 };
 
 class Shader {
@@ -135,7 +136,9 @@ public:
 	void set_as_rgb8(uint width, uint heigth, unsigned char* data);
 	void set_wrap(TextureWrap wrap);
 	void set_filter(TextureFilter wrap);
+	void set_border_color(vec4 color);
 };
+
 
 /// @brief Used with FrameBuffers for fast offscreen rendering. Only drawback is that it's not possible to read from them.
 class RenderBuffer {
@@ -256,6 +259,7 @@ public:
 
 class RendererBackend {
 private:
+	FrameBuffer* shadows_fbo;
 	Material* shadowmap_mat;
 
 public:
@@ -296,7 +300,7 @@ public:
 	void destroy_window(Window* wnd);
 
 	void render_frame();
-	void update_shader_globals();
+	void update_material_globals();
 
 	Camera* get_active_camera();
 };
