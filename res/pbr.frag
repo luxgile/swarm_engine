@@ -81,13 +81,16 @@ float GeomSmith(float nDotV,float nDotL,float roughness)
     return ggx1*ggx2;
 }
 
-float Shadows(vec4 fragPosLightSpace, int lightIndex) 
+float Shadows(vec4 fragPosLightSpace, int lightIndex, vec3 normal, vec3 lightDir) 
 {
     vec3 projCoords = fragPosLightSpace.xyz / fragPosLightSpace.w;
     projCoords = projCoords * 0.5 + 0.5;
+    if (projCoords.z > 1.0) return 0.0;
+
     float closestDepth = texture(shadowMaps, projCoords.xy).r; 
     float currentDepth = projCoords.z;
-    float shadow = currentDepth > closestDepth  ? 1.0 : 0.0;
+    float bias = max(0.05 * (1.0 - dot(normal, lightDir)), 0.005);  
+    float shadow = currentDepth - bias > closestDepth  ? 1.0 : 0.0;
     return shadow;
 }
 
@@ -161,7 +164,7 @@ vec3 ComputePBR()
         // Mult kD by the inverse of metallnes, only non-metals should have diffuse light
         kD *= 1.0 - metallic;
 
-        float shadow = Shadows(fragLightSpace, i);
+        float shadow = Shadows(fragLightSpace, i, N, L);
         radiance = radiance + (1.0 - shadow);
         lightAccum += ((kD*albedo.rgb/PI + spec)*radiance*nDotL)*lights[i].enabled; // Angle of light has impact on result
 //         lightAccum += radiance;

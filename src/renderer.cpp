@@ -585,7 +585,7 @@ mat4 Light::build_view_matrix() {
 mat4 Light::build_proj_matrix() {
 	switch (type) {
 	case Directional:
-		return glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, 1.0f, 120.0f);
+		return glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, 1.0f, 20.0f);
 	case Point:
 	default:
 		return glm::identity<mat4>();
@@ -606,7 +606,7 @@ ShadowMap* Light::get_shadow_map() const {
 ShadowMap::ShadowMap() {
 	shadowmap = App::get_render_backend()->textures.create();
 	shadowmap->set_as_depth(SHADOW_RES, SHADOW_RES, NULL);
-	shadowmap->set_filter(TextureFilter::Nearest);
-	shadowmap->set_wrap(TextureWrap::Repeat);
+	shadowmap->set_filter(TextureFilter::Linear);
+	shadowmap->set_wrap(TextureWrap::ClampBorder);
 	shadowmap->set_border_color(vec4(1.0, 1.0, 1.0, 1.0));
 }
