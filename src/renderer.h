@@ -79,6 +79,7 @@ public:
 	void set_vec2(const char* uniform, vec2 value) const;
 	void set_vec3(const char* uniform, vec3 value) const;
 	void set_vec4(const char* uniform, vec4 value) const;
+	void set_matrix4(const string uniform, mat4 matrix) const { set_matrix4(uniform.c_str(), matrix); }
 	void set_matrix4(const char* uniform, mat4 matrix) const;
 };
 
@@ -124,19 +125,32 @@ enum TextureFilter {
 	Linear,
 };
 class Texture {
+public:
+	virtual GL_ID get_gl_id() const = 0;
+	virtual	void activate(uint id) = 0;
+	virtual void use_texture() = 0;
+	virtual void set_as_depth(uint width, uint heigth, unsigned char* data) = 0;
+	virtual void set_as_rgb8(uint width, uint heigth, unsigned char* data) = 0;
+	virtual void set_wrap(TextureWrap wrap) = 0;
+	virtual void set_filter(TextureFilter wrap) = 0;
+	virtual void set_border_color(vec4 color) = 0;
+};
+
+class Texture2D : public Texture {
 	GL_ID gl_texture;
 
 public:
-	Texture();
+	Texture2D();
 
 public:
-	GL_ID get_gl_id() const { return gl_texture; }
-	void use_texture(uint id);
-	void set_as_depth(uint width, uint heigth, unsigned char* data);
-	void set_as_rgb8(uint width, uint heigth, unsigned char* data);
-	void set_wrap(TextureWrap wrap);
-	void set_filter(TextureFilter wrap);
-	void set_border_color(vec4 color);
+	GL_ID get_gl_id() const override { return gl_texture; }
+	void activate(uint id) override;
+	void use_texture() override;
+	void set_as_depth(uint width, uint heigth, unsigned char* data) override;
+	void set_as_rgb8(uint width, uint heigth, unsigned char* data) override;
+	void set_wrap(TextureWrap wrap) override;
+	void set_filter(TextureFilter wrap) override;
+	void set_border_color(vec4 color) override;
 };
 
 
@@ -151,11 +165,33 @@ public:
 	void set_format(TextureFormat format, vec2 size);
 };
 
+class Texture2DArray : public Texture {
+	GL_ID gl_texture_array;
+
+public:
+	Texture2DArray();
+
+	// Heredado vía Texture
+	GL_ID get_gl_id() const override;
+	void activate(uint id) override;
+	void use_texture() override;
+	void set_as_depth(uint width, uint heigth, unsigned char* data) override;
+	void set_as_depth(uint width, uint heigth, uint depth, unsigned char* data);
+	void set_as_rgb8(uint width, uint heigth, unsigned char* data) override;
+	void set_as_rgb8(uint width, uint heigth, uint depth, unsigned char* data);
+	void set_wrap(TextureWrap wrap) override;
+	void set_filter(TextureFilter wrap) override;
+	void set_border_color(vec4 color) override;
+};
+
+
+
 /// @brief When used, all render operations are drawn into the frame buffer. Needs a texture or render buffer attached as output.
 class FrameBuffer {
 	GL_ID gl_fbo;
 
-	void set_format(uint attachment, uint texture_type, GL_ID id);
+	void set_format_2D(uint attachment, uint texture_type, GL_ID id);
+	void set_format_3D(uint attachment, uint texture_type, uint layer, GL_ID id);
 
 public:
 	FrameBuffer();
@@ -163,14 +199,16 @@ public:
 	static void unbind_framebuffer();
 	bool is_complete();
 	void use_framebuffer();
-	void set_output_depth(Texture* texture);
+	void use_read();
+	void use_draw();
+	void set_output_depth(Texture2D* texture);
+	void set_output_depth(Texture2DArray* texture, uint layer);
 	void set_output_depth(RenderBuffer* rbo);
-	void set_output_depth_stencil(Texture* texture);
+	void set_output_depth_stencil(Texture2D* texture);
 	void set_output_depth_stencil(RenderBuffer* rbo);
-	void set_output_color(Texture* texture, uint id);
+	void set_output_color(Texture2D* texture, uint id);
 	void set_output_color(RenderBuffer* rbo, uint id);
 };
-
 
 class CubemapTexture {
 
@@ -209,8 +247,8 @@ public:
 };
 
 struct ShadowMap {
-	Texture* shadowmap;
-	
+	Texture2D* shadowmap;
+
 	ShadowMap();
 };
 
@@ -229,7 +267,7 @@ struct Light {
 	mat4 build_proj_matrix();
 
 	void set_cast_shadows(bool state);
-	bool get_cast_shadows() { return cast_shadows;  }
+	bool get_cast_shadows() { return cast_shadows; }
 	ShadowMap* get_shadow_map() const;
 
 private:
@@ -252,15 +290,16 @@ public:
 	void process_ai_node(Model* model, aiNode* node, const aiScene* scene);
 	Mesh* process_ai_mesh(aiMesh* mesh, const aiScene* scene);
 };
-class TextureImport : FileImport<Texture> {
+class TextureImport : FileImport<Texture2D> {
 public:
-	Texture* load_file(const char* path) override;
+	Texture2D* load_file(const char* path) override;
 };
 
 class RendererBackend {
 private:
 	FrameBuffer* shadows_fbo;
 	Material* shadowmap_mat;
+	Texture2DArray* shadowmap_textures;
 
 public:
 	vec3 clear_color = vec3(1.0f);
@@ -272,7 +311,8 @@ public:
 	MemPool<Shader> shaders;
 	MemPool<Mesh> meshes;
 	MemPool<Model> models;
-	MemPool<Texture> textures;
+	MemPool<Texture2D> textures;
+	MemPool<Texture2DArray> texture_arrays;
 	MemPool<RenderBuffer> render_buffers;
 	MemPool<FrameBuffer> frame_buffers;
 	MemPool<Camera> cameras;

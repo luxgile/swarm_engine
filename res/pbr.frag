@@ -19,7 +19,7 @@ in vec3 fragPosition;
 in vec2 fragTexCoord;
 in vec3 fragColor;
 in vec3 fragNormal;
-in vec4 fragLightSpace;
+in vec4 fragLightSpace[MAX_LIGHTS];
 in mat3 TBN;
 
 // Output fragment color
@@ -49,7 +49,7 @@ uniform float aoValue = 1;
 uniform float emissivePower;
 
 // Input lighting values
-uniform sampler2D shadowMaps;
+uniform sampler2DArray shadowMaps;
 uniform Light lights[MAX_LIGHTS];
 uniform vec3 viewPos;
 
@@ -87,7 +87,7 @@ float Shadows(vec4 fragPosLightSpace, int lightIndex, vec3 normal, vec3 lightDir
     projCoords = projCoords * 0.5 + 0.5;
     if (projCoords.z > 1.0) return 0.0;
 
-    float closestDepth = texture(shadowMaps, projCoords.xy).r; 
+    float closestDepth = texture(shadowMaps, vec3(projCoords.xy, lightIndex)).r; 
     float currentDepth = projCoords.z;
     float bias = max(0.05 * (1.0 - dot(normal, lightDir)), 0.005);  
     float shadow = currentDepth - bias > closestDepth  ? 1.0 : 0.0;
@@ -164,7 +164,7 @@ vec3 ComputePBR()
         // Mult kD by the inverse of metallnes, only non-metals should have diffuse light
         kD *= 1.0 - metallic;
 
-        float shadow = Shadows(fragLightSpace, i, N, L);
+        float shadow = Shadows(fragLightSpace[i], i, N, L);
         radiance = radiance + (1.0 - shadow);
         lightAccum += ((kD*albedo.rgb/PI + spec)*radiance*nDotL)*lights[i].enabled; // Angle of light has impact on result
 //         lightAccum += radiance;

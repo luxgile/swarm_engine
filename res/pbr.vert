@@ -1,5 +1,7 @@
 #version 330
 
+#define MAX_LIGHTS 4
+
 // Input vertex attributes
 layout (location = 0) in vec3 aPos;
 layout (location = 1) in vec3 aNormal;
@@ -11,14 +13,14 @@ layout (location = 4) in vec2 aCoords;
 uniform mat4 mvp;
 uniform mat4 matModel;
 uniform mat4 matNormal;
-uniform mat4 matLight;
+uniform mat4 matLight[MAX_LIGHTS];
 
 // Output vertex attributes (to fragment shader)
 out vec3 fragPosition;
 out vec2 fragTexCoord;
 out vec3 fragColor;
 out vec3 fragNormal;
-out vec4 fragLightSpace;
+out vec4 fragLightSpace[MAX_LIGHTS];
 out mat3 TBN;
 
 const float normalOffset = 0.1;
@@ -45,7 +47,9 @@ void main()
 
     fragColor = aColor;
 
-    fragLightSpace = matLight * vec4(fragPosition, 1.0);
+    for (int i = 0; i < MAX_LIGHTS; i++) {
+       fragLightSpace[i] = matLight[i] * vec4(fragPosition, 1.0);
+    }
 
     // Calculate final vertex position
     gl_Position = mvp*vec4(aPos, 1.0);

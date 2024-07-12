@@ -43,6 +43,12 @@ void RendererBackend::setup_internals() {
 	shadowmap_mat->set_shader(shadowmap_shader);
 
 	shadows_fbo = frame_buffers.create();
+
+	shadowmap_textures = texture_arrays.create();
+	shadowmap_textures->set_as_depth(SHADOW_RES, SHADOW_RES, 16, NULL);
+	shadowmap_textures->set_filter(TextureFilter::Linear);
+	shadowmap_textures->set_wrap(TextureWrap::ClampBorder);
+	shadowmap_textures->set_border_color(vec4(1.0, 1.0, 1.0, 1.0));
 }
 
 Window* RendererBackend::create_window(ivec2 size, string title) {
@@ -90,14 +96,16 @@ void RendererBackend::render_visuals_forward() {
 
 void RendererBackend::render_shadowmaps() {
 
-	for (auto light : lights) {
+	for (size_t i = 0; i < lights.size(); i++) {
+		auto light = lights[i];
 		if (!light->get_cast_shadows()) continue;
 		auto sm = light->get_shadow_map();
 
 		auto proj = light->build_proj_matrix();
 		auto view = light->build_view_matrix();
 
-		shadows_fbo->set_output_depth(sm->shadowmap);
+		//shadows_fbo->set_output_depth(sm->shadowmap);
+		shadows_fbo->set_output_depth(shadowmap_textures, i);
 		if (!shadows_fbo->is_complete()) {
 			fprintf(stderr, "ERROR: Shadowmap frame buffer is incompleted. Some shadows might be missing");
 			continue;
@@ -106,7 +114,8 @@ void RendererBackend::render_shadowmaps() {
 		shadows_fbo->use_framebuffer();
 
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		sm->shadowmap->use_texture(SamplerID::Albedo);
+		//sm->shadowmap->activate(SamplerID::Albedo);
+		shadowmap_textures->activate(SamplerID::Albedo);
 		render_visuals(proj, view, shadowmap_mat);
 
 		FrameBuffer::unbind_framebuffer();
@@ -153,8 +162,8 @@ void RendererBackend::update_material_globals() {
 
 			if (light->get_cast_shadows()) {
 				auto sm = light->get_shadow_map();
-				shader->set_matrix4("matLight", light->build_proj_matrix() * light->build_view_matrix());
-				material->set_texture(SamplerID::Shadows, sm->shadowmap);
+				shader->set_matrix4("matLight[" + std::to_string(i) + "]", light->build_proj_matrix() * light->build_view_matrix());
+				material->set_texture(SamplerID::Shadows, shadowmap_textures);
 			}
 		}
 	}
@@ -428,28 +437,32 @@ Mesh* ModelImport::process_ai_mesh(aiMesh* mesh, const aiScene* scene) {
 	return gpu_mesh;
 }
 
-Texture::Texture() {
+Texture2D::Texture2D() {
 	glGenTextures(1, &gl_texture);
 }
 
-void Texture::use_texture(uint id) {
+void Texture2D::activate(uint id) {
 	glActiveTexture(GL_TEXTURE0 + id);
+	use_texture();
+}
+
+void Texture2D::use_texture() {
 	glBindTexture(GL_TEXTURE_2D, gl_texture);
 }
 
-void Texture::set_as_depth(uint width, uint heigth, unsigned char* data) {
+void Texture2D::set_as_depth(uint width, uint heigth, unsigned char* data) {
 	glBindTexture(GL_TEXTURE_2D, gl_texture);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, width, heigth, 0, GL_DEPTH_COMPONENT, GL_FLOAT, data);
 	glGenerateMipmap(GL_TEXTURE_2D);
 }
 
-void Texture::set_as_rgb8(uint width, uint heigth, unsigned char* data) {
+void Texture2D::set_as_rgb8(uint width, uint heigth, unsigned char* data) {
 	glBindTexture(GL_TEXTURE_2D, gl_texture);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, heigth, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
 	glGenerateMipmap(GL_TEXTURE_2D);
 }
 
-void Texture::set_wrap(TextureWrap wrap) {
+void Texture2D::set_wrap(TextureWrap wrap) {
 	uint gl_wrap = 0;
 	switch (wrap) {
 	case Repeat:
@@ -470,7 +483,7 @@ void Texture::set_wrap(TextureWrap wrap) {
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, gl_wrap);
 }
 
-void Texture::set_filter(TextureFilter filter) {
+void Texture2D::set_filter(TextureFilter filter) {
 	uint gl_filter = 0;
 	uint gl_mm_filter = 0;
 	switch (filter) {
@@ -489,12 +502,12 @@ void Texture::set_filter(TextureFilter filter) {
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, gl_mm_filter);
 }
 
-void Texture::set_border_color(vec4 color) {
+void Texture2D::set_border_color(vec4 color) {
 	glBindTexture(GL_TEXTURE_2D, gl_texture);
 	glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, &color.x);
 }
 
-Texture* TextureImport::load_file(const char* path) {
+Texture2D* TextureImport::load_file(const char* path) {
 	fprintf(stderr, "INFO: Loading texture at: %s\n", path);
 	int width, heigth, nrChannels;
 	unsigned char* data = stbi_load(path, &width, &heigth, &nrChannels, 0);
@@ -503,7 +516,7 @@ Texture* TextureImport::load_file(const char* path) {
 		return nullptr;
 	}
 
-	Texture* texture = App::get_render_backend()->textures.create();
+	Texture2D* texture = App::get_render_backend()->textures.create();
 	texture->set_as_rgb8(width, heigth, data);
 	stbi_image_free(data);
 	return texture;
@@ -516,14 +529,20 @@ Material::Material() {
 void Material::use_material() const {
 	for (size_t i = 0; i < textures.size(); i++) {
 		if (textures[i] == nullptr) continue;
-		textures[i]->use_texture(i);
+		textures[i]->activate(i);
 	}
 	shader->use_shader();
 }
 
-void FrameBuffer::set_format(uint attachment, uint texture_type, GL_ID id) {
+void FrameBuffer::set_format_2D(uint attachment, uint texture_type, GL_ID id) {
 	use_framebuffer();
 	glFramebufferTexture2D(GL_FRAMEBUFFER, attachment, texture_type, id, 0);
+	unbind_framebuffer();
+}
+
+void FrameBuffer::set_format_3D(uint attachment, uint texture_type, uint layer, GL_ID id) {
+	use_framebuffer();
+	glFramebufferTextureLayer(GL_FRAMEBUFFER, attachment, id, 0, layer);
 	unbind_framebuffer();
 }
 
@@ -543,28 +562,40 @@ void FrameBuffer::use_framebuffer() {
 	glBindFramebuffer(GL_FRAMEBUFFER, gl_fbo);
 }
 
-void FrameBuffer::set_output_depth(Texture* texture) {
-	set_format(GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, texture->get_gl_id());
+void FrameBuffer::use_read() {
+	glBindFramebuffer(GL_READ_FRAMEBUFFER, gl_fbo);
+}
+
+void FrameBuffer::use_draw() {
+	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, gl_fbo);
+}
+
+void FrameBuffer::set_output_depth(Texture2D* texture) {
+	set_format_2D(GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, texture->get_gl_id());
+}
+
+void FrameBuffer::set_output_depth(Texture2DArray* texture, uint layer) {
+	set_format_3D(GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D_ARRAY, layer, texture->get_gl_id());
 }
 
 void FrameBuffer::set_output_depth(RenderBuffer* rbo) {
-	set_format(GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, rbo->get_gl_id());
+	set_format_2D(GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, rbo->get_gl_id());
 }
 
-void FrameBuffer::set_output_depth_stencil(Texture* texture) {
-	set_format(GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D, texture->get_gl_id());
+void FrameBuffer::set_output_depth_stencil(Texture2D* texture) {
+	set_format_2D(GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D, texture->get_gl_id());
 }
 
 void FrameBuffer::set_output_depth_stencil(RenderBuffer* rbo) {
-	set_format(GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D, rbo->get_gl_id());
+	set_format_2D(GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D, rbo->get_gl_id());
 }
 
-void FrameBuffer::set_output_color(Texture* texture, uint id = 0) {
-	set_format(GL_COLOR_ATTACHMENT0 + id, GL_TEXTURE_2D, texture->get_gl_id());
+void FrameBuffer::set_output_color(Texture2D* texture, uint id = 0) {
+	set_format_2D(GL_COLOR_ATTACHMENT0 + id, GL_TEXTURE_2D, texture->get_gl_id());
 }
 
 void FrameBuffer::set_output_color(RenderBuffer* rbo, uint id) {
-	set_format(GL_COLOR_ATTACHMENT0 + id, GL_TEXTURE_2D, rbo->get_gl_id());
+	set_format_2D(GL_COLOR_ATTACHMENT0 + id, GL_TEXTURE_2D, rbo->get_gl_id());
 
 }
 
@@ -609,4 +640,85 @@ ShadowMap::ShadowMap() {
 	shadowmap->set_filter(TextureFilter::Linear);
 	shadowmap->set_wrap(TextureWrap::ClampBorder);
 	shadowmap->set_border_color(vec4(1.0, 1.0, 1.0, 1.0));
+}
+
+Texture2DArray::Texture2DArray() {
+	glGenTextures(1, &gl_texture_array);
+}
+
+GL_ID Texture2DArray::get_gl_id() const {
+	return gl_texture_array;
+}
+
+void Texture2DArray::activate(uint id) {
+	glActiveTexture(GL_TEXTURE0 + id);
+	use_texture();
+}
+
+void Texture2DArray::use_texture() {
+	glBindTexture(GL_TEXTURE_2D_ARRAY, gl_texture_array);
+}
+
+void Texture2DArray::set_as_depth(uint width, uint heigth, unsigned char* data) {
+	set_as_depth(width, heigth, 1, data);
+}
+void Texture2DArray::set_as_depth(uint width, uint heigth, uint depth, unsigned char* data) {
+	glBindTexture(GL_TEXTURE_2D_ARRAY, gl_texture_array);
+	glTexImage3D(GL_TEXTURE_2D_ARRAY, 0, GL_DEPTH_COMPONENT, width, heigth, depth, 0, GL_DEPTH_COMPONENT, GL_FLOAT, data);
+	glGenerateMipmap(GL_TEXTURE_2D_ARRAY);
+}
+
+void Texture2DArray::set_as_rgb8(uint width, uint heigth, unsigned char* data) {
+	set_as_rgb8(width, heigth, 1, data);
+}
+
+void Texture2DArray::set_as_rgb8(uint width, uint heigth, uint depth, unsigned char* data) {
+	glBindTexture(GL_TEXTURE_2D_ARRAY, gl_texture_array);
+	glTexImage3D(GL_TEXTURE_2D_ARRAY, 0, GL_RGB, width, heigth, depth, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+	glGenerateMipmap(GL_TEXTURE_2D_ARRAY);
+}
+
+void Texture2DArray::set_wrap(TextureWrap wrap) {
+	uint gl_wrap = 0;
+	switch (wrap) {
+	case Repeat:
+		gl_wrap = GL_REPEAT;
+		break;
+	case Mirrored:
+		gl_wrap = GL_MIRRORED_REPEAT;
+		break;
+	case ClampEdge:
+		gl_wrap = GL_CLAMP_TO_EDGE;
+		break;
+	case ClampBorder:
+		gl_wrap = GL_CLAMP_TO_BORDER;
+		break;
+	}
+	glBindTexture(GL_TEXTURE_2D_ARRAY, gl_texture_array);
+	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_S, gl_wrap);
+	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_T, gl_wrap);
+}
+
+void Texture2DArray::set_filter(TextureFilter filter) {
+	uint gl_filter = 0;
+	uint gl_mm_filter = 0;
+	switch (filter) {
+	case Nearest:
+		gl_filter = GL_NEAREST;
+		gl_mm_filter = GL_NEAREST_MIPMAP_NEAREST;
+		break;
+	case Linear:
+		gl_filter = GL_LINEAR;
+		gl_mm_filter = GL_LINEAR_MIPMAP_LINEAR;
+		break;
+	}
+
+	glBindTexture(GL_TEXTURE_2D_ARRAY, gl_texture_array);
+	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, gl_filter);
+	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, gl_mm_filter);
+}
+
+void Texture2DArray::set_border_color(vec4 color) {
+	glBindTexture(GL_TEXTURE_2D_ARRAY, gl_texture_array);
+	glTexParameterfv(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_BORDER_COLOR, &color.x);
 }

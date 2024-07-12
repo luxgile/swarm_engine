@@ -54,6 +54,7 @@ void App::app_loop() {
 	ligth->intensity = 3.0f;
 
 	auto ligth2 = render->lights.create();
+	ligth2->set_cast_shadows(true);
 	ligth2->type = LightType::Point;
 	ligth2->position = vec3(-3.0, 1.0, -1.0);
 	ligth2->color = vec3(0.3, 0.4, 0.8);
@@ -65,6 +66,13 @@ void App::app_loop() {
 	sun->dir = glm::normalize(vec3(0.3, -0.5, 0.2));
 	sun->color = vec3(1.0, 1.0, 1.0);
 	sun->intensity = 1.0f;
+
+	auto sun2 = render->lights.create();
+	sun2->set_cast_shadows(true);
+	sun2->type = LightType::Directional;
+	sun2->dir = glm::normalize(vec3(-0.3, -0.5, 0.2));
+	sun2->color = vec3(1.0, 1.0, 1.0);
+	sun2->intensity = 1.0f;
 
 	auto proj = glm::perspectiveFov(70.0f, 1280.0f, 720.0f, 0.1f, 100.0f);
 	auto camera = render->cameras.create();
