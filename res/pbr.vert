@@ -1,6 +1,6 @@
 #version 330
 
-#define MAX_LIGHTS 4
+#define MAX_SHADOW_MAPS 24
 
 // Input vertex attributes
 layout (location = 0) in vec3 aPos;
@@ -13,14 +13,14 @@ layout (location = 4) in vec2 aCoords;
 uniform mat4 mvp;
 uniform mat4 matModel;
 uniform mat4 matNormal;
-uniform mat4 matLight[MAX_LIGHTS];
+uniform mat4 matLight[MAX_SHADOW_MAPS];
 
 // Output vertex attributes (to fragment shader)
 out vec3 fragPosition;
 out vec2 fragTexCoord;
 out vec3 fragColor;
 out vec3 fragNormal;
-out vec4 fragLightSpace[MAX_LIGHTS];
+out vec4 fragLightSpace[MAX_SHADOW_MAPS];
 out mat3 TBN;
 
 const float normalOffset = 0.1;
@@ -47,7 +47,7 @@ void main()
 
     fragColor = aColor;
 
-    for (int i = 0; i < MAX_LIGHTS; i++) {
+    for (int i = 0; i < MAX_SHADOW_MAPS; i++) {
        fragLightSpace[i] = matLight[i] * vec4(fragPosition, 1.0);
     }
 

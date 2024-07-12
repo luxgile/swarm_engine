@@ -215,7 +215,7 @@ void Shader::compile_shader(const char* vert, const char* frag) {
 	if (!success) {
 		char infoLog[512];
 		glGetProgramInfoLog(gl_program, 512, NULL, infoLog);
-		std::cout << "ERROR::SHADER::PROGRAM::LINKING_FAILED\n" << infoLog << std::endl;
+		std::cout << "ERROR::SHADER::PROGRAM::LINKING_FAILED:\n\t" << infoLog << std::endl;
 	}
 
 	glDeleteShader(vertex);

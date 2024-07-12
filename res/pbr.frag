@@ -1,6 +1,7 @@
 #version 330
 
 #define MAX_LIGHTS              4
+#define MAX_SHADOW_MAPS         24
 #define LIGHT_POINT             0
 #define LIGHT_DIRECTIONAL       1
 #define PI 3.14159265358979323846
@@ -19,7 +20,7 @@ in vec3 fragPosition;
 in vec2 fragTexCoord;
 in vec3 fragColor;
 in vec3 fragNormal;
-in vec4 fragLightSpace[MAX_LIGHTS];
+in vec4 fragLightSpace[MAX_SHADOW_MAPS];
 in mat3 TBN;
 
 // Output fragment color
