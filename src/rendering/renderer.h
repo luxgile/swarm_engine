@@ -329,6 +329,8 @@ private:
 	Material* shadowmap_mat;
 	Texture2DArray* shadowmap_textures;
 
+	bool imgui_installed;
+
 public:
 
 	std::vector<Window*> windows;
@@ -352,6 +354,8 @@ public:
 private:
 	void setup_gl();
 	void setup_glew();
+	void setup_internals();
+	void setup_imgui();
 
 	void render_shadowmaps(vector<Light*> lights, vector<Visual*> visuals);
 	void render_skybox(RenderWorld* world);
@@ -363,13 +367,16 @@ private:
 
 public:
 	RendererBackend();
-	void setup_internals();
+	void setup();
+	bool is_imgui_installed() { return imgui_installed; }
 
 	Window* get_main_window() { return windows[0]; }
 
 	Window* create_window(ivec2 size, string title);
 	Window* get_window_from_glfw(GLFWwindow* wnd);
 	void destroy_window(Window* wnd);
+
+	void debug_backend(RenderWorld* world);
 
 	void render_worlds();
 	void render_world(RenderWorld* world);

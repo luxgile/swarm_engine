@@ -4,11 +4,17 @@
 #include <glm/gtc/type_ptr.hpp>
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
+#include "imgui.h"
+#include "../imgui/imgui_impl_glfw.h"
+#include "../imgui/imgui_impl_opengl3.h"
 
 using namespace std;
 const int SHADOW_RES = 1024;
 
 RendererBackend::RendererBackend() {
+}
+
+void RendererBackend::setup() {
 	setup_gl();
 
 	// Main Window
@@ -22,6 +28,9 @@ RendererBackend::RendererBackend() {
 	const GLubyte* version = glGetString(GL_VERSION); // version as a string
 	printf("Renderer: %s\n", renderer);
 	printf("OpenGL version supported %s\n", version);
+
+	setup_internals();
+	setup_imgui();
 }
 
 void RendererBackend::setup_gl() {
@@ -51,6 +60,22 @@ void RendererBackend::setup_internals() {
 	shadowmap_textures->set_border_color(vec4(1.0, 1.0, 1.0, 1.0));
 }
 
+void RendererBackend::setup_imgui() {
+	if (imgui_installed) return;
+
+	IMGUI_CHECKVERSION();
+	ImGui::CreateContext();
+	ImGuiIO& io = ImGui::GetIO();
+	io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
+	io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
+	//io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
+
+	ImGui_ImplOpenGL3_Init();
+	ImGui_ImplGlfw_InitForOpenGL(get_main_window()->gl_wnd, true); // We need to initialize 
+
+	imgui_installed = true;
+}
+
 Window* RendererBackend::create_window(ivec2 size, string title) {
 	Window* wnd = new Window(size, title);
 	windows.push_back(wnd);
@@ -68,6 +93,23 @@ void RendererBackend::destroy_window(Window* wnd) {
 	windows.erase(std::remove(windows.begin(), windows.end(), wnd), windows.end());
 }
 
+void RendererBackend::debug_backend(RenderWorld* world) {
+	if (!is_imgui_installed()) return;
+
+	bool active = true;
+	world->on_ui_pass.connect([this, &active]() {
+			ImGui::Begin("Render Backend", &active);
+			for (auto m : materials) {
+				if (auto material = static_cast<PbrMaterial*>(m)) {
+					ImGui::ColorEdit4("Color", &material->albedo.x);
+					ImGui::SliderFloat("Metallic", &material->metallic, 0, 1);
+					ImGui::SliderFloat("Roughness", &material->roughness, 0, 1);
+				}
+			}
+			ImGui::End();
+		});
+}
+
 void RendererBackend::render_worlds() {
 	for (auto w : worlds) {
 		render_world(w);
@@ -79,13 +121,31 @@ void RendererBackend::render_world(RenderWorld* world) {
 	render_shadowmaps(world->lights, world->visuals);
 	update_material_globals(world);
 
+
 	world->vp->use_viewport();
 	auto ccolor = world->env->clear_color;
 	glClearColor(ccolor.r, ccolor.g, ccolor.b, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+	world->on_pre_render();
+
 	render_skybox(world);
 	render_visuals(camera->get_proj_mat(), camera->get_view_mat(), world->visuals, nullptr);
+
+	if (is_imgui_installed()) {
+		ImGui_ImplOpenGL3_NewFrame();
+		ImGui_ImplGlfw_NewFrame();
+		ImGui::NewFrame();
+
+		// UI Rendering
+		world->on_ui_pass();
+
+		ImGui::Render();
+		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+	}
+
+	world->on_post_render();
+
 	FrameBuffer::unbind_framebuffer();
 }
 
@@ -120,7 +180,7 @@ void RendererBackend::render_shadowmaps(vector<Light*> lights, vector<Visual*> v
 void RendererBackend::render_skybox(RenderWorld* world) {
 
 	auto camera = world->get_active_camera();
-	auto view = mat4(mat3(camera->get_view_mat())); 
+	auto view = mat4(mat3(camera->get_view_mat()));
 	auto proj = camera->get_proj_mat();
 
 	auto env = world->env;
@@ -198,6 +258,10 @@ Window::Window(ivec2 size, string title) {
 		auto window = App::get_render_backend()->get_window_from_glfw(wnd);
 		window->vp->set_size(vec2(w, h));
 		});
+
+	if (App::get_render_backend()->is_imgui_installed()) {
+		ImGui_ImplGlfw_InitForOpenGL(gl_wnd, true);
+	}
 }
 
 void Window::make_current() {

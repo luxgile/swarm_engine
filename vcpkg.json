@@ -4,6 +4,8 @@
     "glew",
     "glfw3",
     "glm",
-    "stb"
+    "imgui",
+    "stb",
+    "boost-signals2"
   ]
 }

@@ -13,7 +13,7 @@ App::App() {
 	singleton = this;
 
 	render_backend = std::make_unique<RendererBackend>();
-	render_backend.get()->setup_internals();
+	render_backend.get()->setup();
 }
 
 void App::app_loop() {
@@ -121,6 +121,8 @@ void App::app_loop() {
 	glCullFace(GL_BACK);
 	glEnable(GL_DEPTH_TEST);
 	glDepthFunc(GL_LESS);
+
+	render->debug_backend(world);
 
 	int frame = 0;
 	float app_time = 0;

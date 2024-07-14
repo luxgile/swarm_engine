@@ -2,6 +2,7 @@
 #include "renderer.h"
 #include <glm/glm.hpp>
 #include "glm/common.hpp"
+#include "boost/signals2.hpp"
 
 using namespace glm;
 using namespace std;
@@ -42,7 +43,12 @@ public:
 
 	Viewport* vp;
 	RenderEnviroment* env;
-
+	
+	//boost::signal<void> dig;
+	boost::signals2::signal<void()> on_pre_render;
+	boost::signals2::signal<void()> on_ui_pass;
+	boost::signals2::signal<void()> on_post_render;
+	
 	vector<Camera*> cameras;
 	vector<Light*> lights;
 	vector<Material*> materials;
