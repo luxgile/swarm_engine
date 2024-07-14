@@ -18,7 +18,11 @@ App::App() {
 
 void App::app_loop() {
 	auto render = get_render_backend();
+	auto window = render->get_main_window();
+	auto viewport = render->viewports.create();
+	window->set_viewport(viewport);
 	auto world = render->worlds.create();
+	world->vp = viewport;
 
 	auto shader_importer = ShaderImport();
 	auto model_importer = ModelImport();

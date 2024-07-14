@@ -10,13 +10,19 @@ class Camera;
 struct Light;
 class Material;
 class Visual;
+class FrameBuffer;
+class Texture2D;
 
 class Viewport {
 	vec2 size;
+	Texture2D* fbo_color;
+	Texture2D* fbo_depth_stencil;
 
 public:
 	Viewport();
-	void set_size(vec2 size) { this->size = size; }
+	FrameBuffer* fbo;
+	void set_size(vec2 size);
+	vec2 get_size() const { return size; }
 };
 
 class RenderEnviroment {
@@ -26,7 +32,6 @@ public:
 	float ambient_intensity = 0.3f;
 
 	Visual* skybox;
-
 };
 
 class RenderWorld {

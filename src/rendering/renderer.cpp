@@ -72,12 +72,14 @@ void RendererBackend::render_world(RenderWorld* world) {
 	render_shadowmaps(world->lights, world->visuals);
 	update_material_globals(world);
 
+	world->vp->fbo->use_framebuffer();
 	auto ccolor = world->env->clear_color;
 	glClearColor(ccolor.r, ccolor.g, ccolor.b, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	render_skybox(world);
 	render_visuals(camera->get_proj_mat(), camera->get_view_mat(), world->visuals, nullptr);
+	FrameBuffer::unbind_framebuffer();
 }
 
 void RendererBackend::render_shadowmaps(vector<Light*> lights, vector<Visual*> visuals) {
@@ -196,7 +198,28 @@ bool Window::should_close() {
 }
 
 void Window::swap_buffers() {
+	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+	glBindFramebuffer(GL_READ_FRAMEBUFFER, vp->fbo->get_gl_id());
+	
+	auto size = get_size();
+	glBlitFramebuffer(0, 0, size.x, size.y, 0, 0, size.x, size.y, GL_COLOR_BUFFER_BIT, GL_NEAREST);
 	glfwSwapBuffers(gl_wnd);
+}
+
+void Window::set_viewport(Viewport* vp) {
+	this->vp = vp;
+	vp->set_size(get_size());
+}
+
+void Window::set_size(ivec2 size) {
+	glfwSetWindowSize(gl_wnd, size.x, size.y);
+	vp->set_size(size);
+}
+
+ivec2 Window::get_size() {
+	ivec2 size;
+	glfwGetWindowSize(gl_wnd, &size.x, &size.y);
+	return size;
 }
 
 unsigned int Shader::compile_source(ShaderSrcType type, const char* src) {
@@ -672,6 +695,11 @@ void Texture::activate(uint id) {
 
 void Texture::use_texture() {
 	glBindTexture(get_gl_type(), get_gl_id());
+}
+
+void Texture::set_as_depth_stencil(uint width, uint heigth, unsigned char* data) {
+	use_texture();
+	glTexImage2D(get_gl_type(), 0, GL_DEPTH24_STENCIL8, width, heigth, 0, GL_DEPTH_STENCIL, GL_UNSIGNED_INT_24_8, data);
 }
 
 void Texture::set_wrap(TextureWrap wrap) {

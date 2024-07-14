@@ -25,15 +25,22 @@ class RenderEnviroment;
 class RenderWorld;
 
 class Window {
+	Viewport* vp;
+
 public:
 	GLFWwindow* gl_wnd;
-	Viewport* vp;
 
 public:
 	Window(ivec2 size, string title);
 	void make_current();
 	bool should_close();
 	void swap_buffers();
+
+	void set_viewport(Viewport* vp);
+	const Viewport* get_viewport() { return vp; }
+
+	void set_size(ivec2 size);
+	ivec2 get_size();
 };
 
 class Camera {
@@ -133,6 +140,7 @@ public:
 	virtual void use_texture();
 	virtual void set_as_depth(uint width, uint heigth, unsigned char* data) = 0;
 	virtual void set_as_rgb8(uint width, uint heigth, unsigned char* data) = 0;
+	virtual void set_as_depth_stencil(uint width, uint heigth, unsigned char* data);
 	virtual void set_wrap(TextureWrap wrap);
 	virtual void set_filter(TextureFilter wrap);
 	virtual void set_border_color(vec4 color);
@@ -199,6 +207,7 @@ public:
 	FrameBuffer();
 
 	static void unbind_framebuffer();
+	GL_ID get_gl_id() { return gl_fbo; }
 	bool is_complete();
 	void use_framebuffer();
 	void use_read();
@@ -355,6 +364,8 @@ private:
 public:
 	RendererBackend();
 	void setup_internals();
+
+	Window* get_main_window() { return windows[0]; }
 
 	Window* create_window(ivec2 size, string title);
 	void destroy_window(Window* wnd);
