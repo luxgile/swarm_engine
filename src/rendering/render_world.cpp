@@ -30,6 +30,11 @@ Viewport::Viewport() {
 	fbo->set_output_depth_stencil(fbo_depth_stencil);
 }
 
+void Viewport::use_viewport() {
+	glViewport(0, 0, size.x, size.y);
+	fbo->use_framebuffer();
+}
+
 void Viewport::set_size(vec2 size) {
 	this->size = size;
 	fbo_color->set_as_rgb8(size.x, size.y, 0);

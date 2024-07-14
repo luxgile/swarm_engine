@@ -57,6 +57,13 @@ Window* RendererBackend::create_window(ivec2 size, string title) {
 	return wnd;
 }
 
+Window* RendererBackend::get_window_from_glfw(GLFWwindow* wnd) {
+	for (auto w : windows) {
+		if (w->gl_wnd == wnd) return w;
+	}
+	return nullptr;
+}
+
 void RendererBackend::destroy_window(Window* wnd) {
 	windows.erase(std::remove(windows.begin(), windows.end(), wnd), windows.end());
 }
@@ -72,7 +79,7 @@ void RendererBackend::render_world(RenderWorld* world) {
 	render_shadowmaps(world->lights, world->visuals);
 	update_material_globals(world);
 
-	world->vp->fbo->use_framebuffer();
+	world->vp->use_viewport();
 	auto ccolor = world->env->clear_color;
 	glClearColor(ccolor.r, ccolor.g, ccolor.b, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -106,7 +113,6 @@ void RendererBackend::render_shadowmaps(vector<Light*> lights, vector<Visual*> v
 		render_visuals(proj, view, visuals, shadowmap_mat);
 
 		FrameBuffer::unbind_framebuffer();
-		glViewport(0, 0, 1280, 720);
 	}
 
 }
@@ -114,7 +120,7 @@ void RendererBackend::render_shadowmaps(vector<Light*> lights, vector<Visual*> v
 void RendererBackend::render_skybox(RenderWorld* world) {
 
 	auto camera = world->get_active_camera();
-	auto view = mat4(mat3(camera->get_view_mat())); // Crop out position
+	auto view = mat4(mat3(camera->get_view_mat())); 
 	auto proj = camera->get_proj_mat();
 
 	auto env = world->env;
@@ -187,6 +193,11 @@ void RendererBackend::update_material_globals(RenderWorld* world) {
 Window::Window(ivec2 size, string title) {
 	glfwWindowHint(GLFW_SAMPLES, 4);
 	gl_wnd = glfwCreateWindow(size.x, size.y, title.c_str(), NULL, NULL);
+
+	glfwSetWindowSizeCallback(gl_wnd, [](GLFWwindow* wnd, int w, int h) {
+		auto window = App::get_render_backend()->get_window_from_glfw(wnd);
+		window->vp->set_size(vec2(w, h));
+		});
 }
 
 void Window::make_current() {
@@ -200,7 +211,7 @@ bool Window::should_close() {
 void Window::swap_buffers() {
 	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
 	glBindFramebuffer(GL_READ_FRAMEBUFFER, vp->fbo->get_gl_id());
-	
+
 	auto size = get_size();
 	glBlitFramebuffer(0, 0, size.x, size.y, 0, 0, size.x, size.y, GL_COLOR_BUFFER_BIT, GL_NEAREST);
 	glfwSwapBuffers(gl_wnd);

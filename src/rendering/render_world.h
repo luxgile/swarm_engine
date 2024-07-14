@@ -21,6 +21,7 @@ class Viewport {
 public:
 	Viewport();
 	FrameBuffer* fbo;
+	void use_viewport();
 	void set_size(vec2 size);
 	vec2 get_size() const { return size; }
 };

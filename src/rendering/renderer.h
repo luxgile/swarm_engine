@@ -368,6 +368,7 @@ public:
 	Window* get_main_window() { return windows[0]; }
 
 	Window* create_window(ivec2 size, string title);
+	Window* get_window_from_glfw(GLFWwindow* wnd);
 	void destroy_window(Window* wnd);
 
 	void render_worlds();
