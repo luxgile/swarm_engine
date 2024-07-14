@@ -50,7 +50,7 @@ void App::app_loop() {
 	skybox->set_model(cube_model);
 	world->env->skybox = skybox;
 
-	auto material = render->materials.create();
+	auto material = render->materials.create<PbrMaterial>();
 	material->set_shader(shader);
 	material->set_texture(SamplerID::Albedo, uv_texture);
 	material->set_texture(SamplerID::Skybox, skybox_cube);

@@ -107,7 +107,7 @@ public:
 
 	void use_mesh() const;
 	uint get_vertex_count() const { return vertex_count; }
-	uint get_elements_count() const { return elements_count; } 
+	uint get_elements_count() const { return elements_count; }
 };
 
 enum TextureFormat {
@@ -241,6 +241,18 @@ public:
 	Shader* get_shader() { return shader; }
 	void set_texture(uint id, Texture* texture) { this->textures[id] = texture; }
 	void set_texture(SamplerID id, Texture* texture) { this->textures[id] = texture; }
+	virtual void update_internals() {}
+};
+
+class PbrMaterial : public Material {
+public:
+	vec4 albedo = vec4(1.0, 1.0, 1.0, 1.0);
+	vec4 emissive = vec4(0.0, 0.0, 0.0, 0.0);
+	float metallic = 0.3f;
+	float roughness = 0.1f;
+	float ambient_occlusion = 1.0f;
+
+	void update_internals() override;
 };
 
 class Visual {

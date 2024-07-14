@@ -157,6 +157,8 @@ void RendererBackend::update_material_globals(RenderWorld* world) {
 	auto camera = world->get_active_camera();
 	auto env = world->env;
 	for (auto material : materials) {
+		material->update_internals();
+
 		auto shader = material->get_shader();
 		shader->set_vec3("viewPos", glm::inverse(camera->get_view_mat())[3]);
 		shader->set_vec3("ambientColor", env->ambient_color);
@@ -744,4 +746,13 @@ CubemapTexture* CubemapTextureImport::load_file(const char* path) {
 	}
 
 	return cubemap;
+}
+
+void PbrMaterial::update_internals() {
+	auto shader = get_shader();
+	shader->set_vec4("albedoColor", albedo);
+	shader->set_vec4("emissiveColor", emissive);
+	shader->set_float("metallicValue", metallic);
+	shader->set_float("roughnessValue", roughness);
+	shader->set_float("aoValue", ambient_occlusion);
 }

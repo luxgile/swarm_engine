@@ -44,11 +44,9 @@ uniform int useTexEmissive;
 
 uniform vec4  albedoColor = vec4(1.0);
 uniform vec4  emissiveColor;
-uniform float normalValue;
 uniform float metallicValue = 0.9;
 uniform float roughnessValue = 0.8;
 uniform float aoValue = 1;
-uniform float emissivePower;
 
 // Input lighting values
 uniform sampler2DArray shadowMaps;
@@ -124,7 +122,7 @@ vec3 ComputePBR()
     vec3 V = normalize(viewPos - fragPosition);
 
     vec3 emissive = vec3(0);
-    emissive = (texture(emissiveMap, vec2(fragTexCoord.x*tiling.x+offset.x, fragTexCoord.y*tiling.y+offset.y)).rgb).g * emissiveColor.rgb*emissivePower * useTexEmissive;
+    emissive = (texture(emissiveMap, vec2(fragTexCoord.x*tiling.x+offset.x, fragTexCoord.y*tiling.y+offset.y)).rgb).g * emissiveColor.rgb*emissiveColor.a * useTexEmissive;
 
     vec4 skybox = texture(skyboxMap, reflect(V, N));
 

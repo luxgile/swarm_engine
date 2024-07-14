@@ -13,6 +13,14 @@ public:
 		items.push_back(item);
 		return item;
 	}
+
+	template <typename G>
+	G* create() {
+		G* item = new G();
+		items.push_back((T*)item);
+		return item;
+	}
+
 	void destroy(T* item) {
 		auto it = std::remove(items.begin(), items.end(), item);
 		if (it != items.end()) {
