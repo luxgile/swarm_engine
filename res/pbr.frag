@@ -32,6 +32,7 @@ uniform sampler2D albedoMap;
 uniform sampler2D mraMap;
 uniform sampler2D normalMap;
 uniform sampler2D emissiveMap; // r: Hight g:emissive
+uniform samplerCube skyboxMap;
 
 uniform vec2 tiling = vec2(1.0);
 uniform vec2 offset = vec2(0.0);
@@ -125,10 +126,13 @@ vec3 ComputePBR()
     vec3 emissive = vec3(0);
     emissive = (texture(emissiveMap, vec2(fragTexCoord.x*tiling.x+offset.x, fragTexCoord.y*tiling.y+offset.y)).rgb).g * emissiveColor.rgb*emissivePower * useTexEmissive;
 
+    vec4 skybox = texture(skyboxMap, reflect(V, N));
+
     // return N;//vec3(metallic,metallic,metallic);
     // if dia-electric use base reflectivity of 0.04 otherwise ut is a metal use albedo as base reflectivity
     vec3 baseRefl = mix(vec3(0.04), albedo.rgb, metallic);
     vec3 lightAccum = vec3(0.0);  // Acumulate lighting lum
+    albedo = mix(albedo.rgb, skybox.rgb, metallic);
 
     for (int i = 0; i < numOfLights; i++)
     {
@@ -168,13 +172,11 @@ vec3 ComputePBR()
         float shadow = Shadows(fragLightSpace[i], i, N, L);
         radiance = radiance + (1.0 - shadow);
         lightAccum += ((kD*albedo.rgb/PI + spec)*radiance*nDotL)*lights[i].enabled; // Angle of light has impact on result
-//         lightAccum += radiance;
     }
     
-    vec3 ambientFinal = (ambientColor + albedo)*ambient*0.5;
+    vec3 ambientFinal = (ambientColor + albedo) * ambient * 0.5;
     
-    return ambientFinal + lightAccum*ao + emissive;
-
+    return ambientFinal + lightAccum * ao + emissive;
 }
 
 void main()

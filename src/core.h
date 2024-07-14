@@ -1,7 +1,7 @@
 #pragma once
 
 #include <memory>
-#include "renderer.h"
+#include "rendering/renderer.h"
 #define GLM_ENABLE_EXPERIMENTAL
 #include "glm/gtx/quaternion.hpp"
 

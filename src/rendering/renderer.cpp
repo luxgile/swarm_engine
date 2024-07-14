@@ -1,5 +1,5 @@
 #include "renderer.h"
-#include "core.h"
+#include "../core.h"
 #include <string>
 #include <glm/gtc/type_ptr.hpp>
 #define STB_IMAGE_IMPLEMENTATION
@@ -61,45 +61,30 @@ void RendererBackend::destroy_window(Window* wnd) {
 	windows.erase(std::remove(windows.begin(), windows.end(), wnd), windows.end());
 }
 
-Camera* RendererBackend::get_active_camera() {
-	Camera* active = nullptr;
-	int min_priority = 999999;
-	for (auto c : cameras) {
-		if (c->priority < min_priority) {
-			min_priority = c->priority;
-			active = c;
-		}
-	}
-	return active;
-}
-
-void RendererBackend::render_frame() {
-	switch (mode) {
-	case Forward:
-		render_visuals_forward();
-		break;
-	case Deferred:
-		render_visuals_deferred();
-		break;
+void RendererBackend::render_worlds() {
+	for (auto w : worlds) {
+		render_world(w);
 	}
 }
 
-void RendererBackend::render_visuals_forward() {
-	render_shadowmaps();
-	update_material_globals();
-	glClearColor(clear_color.r, clear_color.g, clear_color.b, 1.0f);
+void RendererBackend::render_world(RenderWorld* world) {
+	auto camera = world->get_active_camera();
+	render_shadowmaps(world->lights, world->visuals);
+	update_material_globals(world);
+
+	auto ccolor = world->env->clear_color;
+	glClearColor(ccolor.r, ccolor.g, ccolor.b, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	auto camera = get_active_camera();
-	render_visuals(camera->get_proj_mat(), camera->get_view_mat(), nullptr);
+	render_skybox(world);
+	render_visuals(camera->get_proj_mat(), camera->get_view_mat(), world->visuals, nullptr);
 }
 
-void RendererBackend::render_shadowmaps() {
+void RendererBackend::render_shadowmaps(vector<Light*> lights, vector<Visual*> visuals) {
 
 	for (size_t i = 0; i < lights.size(); i++) {
 		auto light = lights[i];
 		if (!light->get_cast_shadows()) continue;
-		auto sm = light->get_shadow_map();
 
 		auto proj = light->build_proj_matrix();
 		auto view = light->build_view_matrix();
@@ -116,39 +101,66 @@ void RendererBackend::render_shadowmaps() {
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		//sm->shadowmap->activate(SamplerID::Albedo);
 		shadowmap_textures->activate(SamplerID::Albedo);
-		render_visuals(proj, view, shadowmap_mat);
+		render_visuals(proj, view, visuals, shadowmap_mat);
 
 		FrameBuffer::unbind_framebuffer();
 		glViewport(0, 0, 1280, 720);
 	}
 
 }
-void RendererBackend::render_visuals_deferred() {
-	fprintf(stderr, "ERROR: DEFERRED NOT YET IMPLEMENTED.");
+
+void RendererBackend::render_skybox(RenderWorld* world) {
+
+	auto camera = world->get_active_camera();
+	auto view = mat4(mat3(camera->get_view_mat())); // Crop out position
+	auto proj = camera->get_proj_mat();
+
+	auto env = world->env;
+	auto skybox = env->skybox;
+
+	skybox->get_material()->get_shader()->set_matrix4("projection", proj);
+	skybox->get_material()->get_shader()->set_matrix4("view", view);
+
+	glCullFace(GL_FRONT);
+	glDepthMask(GL_FALSE);
+	render_visual(skybox);
+	glDepthMask(GL_TRUE);
+	glCullFace(GL_BACK);
 }
 
-void RendererBackend::render_visuals(mat4 proj, mat4 view, Material* mat_override = nullptr) {
+void RendererBackend::render_visuals(mat4 proj, mat4 view, vector<Visual*> visuals, Material* mat_override = nullptr) {
 	for (auto v : visuals) {
 		auto mvp = proj * view * *v->get_xform();
 		auto mat = mat_override ? mat_override : v->get_material();
-		mat->use_material();
 		mat->get_shader()->set_matrix4("matModel", *v->get_xform());
 		mat->get_shader()->set_matrix4("mvp", mvp);
-
-		for (auto mesh : v->get_model()->meshes) {
-			mesh->use_mesh();
-			glDrawElements(GL_TRIANGLES, mesh->get_elements_count(), GL_UNSIGNED_INT, 0);
-		}
+		render_visual(mat, v->get_model());
 	}
 }
 
-void RendererBackend::update_material_globals() {
-	auto camera = get_active_camera();
+void RendererBackend::render_visual(Visual* visual) {
+	render_visual(visual->get_material(), visual->get_model());
+}
+
+void RendererBackend::render_visual(Material* material, Model* model) {
+	material->use_material();
+
+	for (auto mesh : model->meshes) {
+		mesh->use_mesh();
+		glDrawElements(GL_TRIANGLES, mesh->get_elements_count(), GL_UNSIGNED_INT, 0);
+	}
+}
+
+void RendererBackend::update_material_globals(RenderWorld* world) {
+	auto materials = world->materials;
+	auto lights = world->lights;
+	auto camera = world->get_active_camera();
+	auto env = world->env;
 	for (auto material : materials) {
 		auto shader = material->get_shader();
-		shader->set_vec3("viewPos", camera->get_view_mat()[3]);
-		shader->set_vec3("ambientColor", ambient_color);
-		shader->set_float("ambient", ambient_intensity);
+		shader->set_vec3("viewPos", glm::inverse(camera->get_view_mat())[3]);
+		shader->set_vec3("ambientColor", env->ambient_color);
+		shader->set_float("ambient", env->ambient_intensity);
 		shader->set_int("numOfLights", lights.size());
 		for (size_t i = 0; i < lights.size(); i++) {
 			auto light = lights[i];
@@ -161,7 +173,6 @@ void RendererBackend::update_material_globals() {
 			shader->set_float((ligth_access_std + "intensity").c_str(), light->intensity);
 
 			if (light->get_cast_shadows()) {
-				auto sm = light->get_shadow_map();
 				shader->set_matrix4("matLight[" + std::to_string(i) + "]", light->build_proj_matrix() * light->build_view_matrix());
 				material->set_texture(SamplerID::Shadows, shadowmap_textures);
 			}
@@ -462,54 +473,14 @@ void Texture2D::set_as_rgb8(uint width, uint heigth, unsigned char* data) {
 	glGenerateMipmap(GL_TEXTURE_2D);
 }
 
-void Texture2D::set_wrap(TextureWrap wrap) {
-	uint gl_wrap = 0;
-	switch (wrap) {
-	case Repeat:
-		gl_wrap = GL_REPEAT;
-		break;
-	case Mirrored:
-		gl_wrap = GL_MIRRORED_REPEAT;
-		break;
-	case ClampEdge:
-		gl_wrap = GL_CLAMP_TO_EDGE;
-		break;
-	case ClampBorder:
-		gl_wrap = GL_CLAMP_TO_BORDER;
-		break;
-	}
-	glBindTexture(GL_TEXTURE_2D, gl_texture);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, gl_wrap);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, gl_wrap);
+uint Texture2D::get_gl_type() const {
+	return GL_TEXTURE_2D;
 }
 
-void Texture2D::set_filter(TextureFilter filter) {
-	uint gl_filter = 0;
-	uint gl_mm_filter = 0;
-	switch (filter) {
-	case Nearest:
-		gl_filter = GL_NEAREST;
-		gl_mm_filter = GL_NEAREST_MIPMAP_NEAREST;
-		break;
-	case Linear:
-		gl_filter = GL_LINEAR;
-		gl_mm_filter = GL_LINEAR_MIPMAP_LINEAR;
-		break;
-	}
-
-	glBindTexture(GL_TEXTURE_2D, gl_texture);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, gl_filter);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, gl_mm_filter);
-}
-
-void Texture2D::set_border_color(vec4 color) {
-	glBindTexture(GL_TEXTURE_2D, gl_texture);
-	glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, &color.x);
-}
-
-Texture2D* TextureImport::load_file(const char* path) {
+Texture2D* Texture2DImport::load_file(const char* path) {
 	fprintf(stderr, "INFO: Loading texture at: %s\n", path);
 	int width, heigth, nrChannels;
+	stbi_set_flip_vertically_on_load(true);
 	unsigned char* data = stbi_load(path, &width, &heigth, &nrChannels, 0);
 	if (!data) {
 		fprintf(stderr, "ERROR: Failed to load texture at: %s\n %s\n", path, stbi_failure_reason());
@@ -625,21 +596,6 @@ mat4 Light::build_proj_matrix() {
 
 void Light::set_cast_shadows(bool state) {
 	cast_shadows = state;
-	if (state) shadow_map = App::get_render_backend()->shadow_maps.create();
-	else App::get_render_backend()->shadow_maps.destroy(shadow_map);
-}
-
-ShadowMap* Light::get_shadow_map() const {
-	if (!cast_shadows) return nullptr;
-	return shadow_map;
-}
-
-ShadowMap::ShadowMap() {
-	shadowmap = App::get_render_backend()->textures.create();
-	shadowmap->set_as_depth(SHADOW_RES, SHADOW_RES, NULL);
-	shadowmap->set_filter(TextureFilter::Linear);
-	shadowmap->set_wrap(TextureWrap::ClampBorder);
-	shadowmap->set_border_color(vec4(1.0, 1.0, 1.0, 1.0));
 }
 
 Texture2DArray::Texture2DArray() {
@@ -678,7 +634,45 @@ void Texture2DArray::set_as_rgb8(uint width, uint heigth, uint depth, unsigned c
 	glGenerateMipmap(GL_TEXTURE_2D_ARRAY);
 }
 
-void Texture2DArray::set_wrap(TextureWrap wrap) {
+uint Texture2DArray::get_gl_type() const {
+	return GL_TEXTURE_2D_ARRAY;
+}
+
+CubemapTexture::CubemapTexture() {
+	glGenTextures(1, &gl_cubemap);
+}
+
+GL_ID CubemapTexture::get_gl_id() const {
+	return gl_cubemap;
+}
+
+void CubemapTexture::set_as_depth(uint width, uint heigth, unsigned char* data) {
+}
+
+void CubemapTexture::set_as_rgb8(uint width, uint heigth, unsigned char* data) {
+}
+
+void CubemapTexture::set_as_rgb8(uint width, uint heigth, vector<unsigned char*> data) {
+	use_texture();
+	for (size_t i = 0; i < 6; i++) {
+		glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB, width, heigth, 0, GL_RGB, GL_UNSIGNED_BYTE, data[i]);
+	}
+}
+
+uint CubemapTexture::get_gl_type() const {
+	return GL_TEXTURE_CUBE_MAP;
+}
+
+void Texture::activate(uint id) {
+	glActiveTexture(GL_TEXTURE0 + id);
+	use_texture();
+}
+
+void Texture::use_texture() {
+	glBindTexture(get_gl_type(), get_gl_id());
+}
+
+void Texture::set_wrap(TextureWrap wrap) {
 	uint gl_wrap = 0;
 	switch (wrap) {
 	case Repeat:
@@ -694,12 +688,13 @@ void Texture2DArray::set_wrap(TextureWrap wrap) {
 		gl_wrap = GL_CLAMP_TO_BORDER;
 		break;
 	}
-	glBindTexture(GL_TEXTURE_2D_ARRAY, gl_texture_array);
-	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_S, gl_wrap);
-	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_T, gl_wrap);
+	auto type = get_gl_type();
+	glBindTexture(type, get_gl_id());
+	glTexParameteri(type, GL_TEXTURE_WRAP_S, gl_wrap);
+	glTexParameteri(type, GL_TEXTURE_WRAP_T, gl_wrap);
 }
 
-void Texture2DArray::set_filter(TextureFilter filter) {
+void Texture::set_filter(TextureFilter filter) {
 	uint gl_filter = 0;
 	uint gl_mm_filter = 0;
 	switch (filter) {
@@ -713,12 +708,40 @@ void Texture2DArray::set_filter(TextureFilter filter) {
 		break;
 	}
 
-	glBindTexture(GL_TEXTURE_2D_ARRAY, gl_texture_array);
-	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, gl_filter);
-	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, gl_mm_filter);
+	auto type = get_gl_type();
+	glBindTexture(type, get_gl_id());
+	glTexParameteri(type, GL_TEXTURE_MIN_FILTER, gl_filter);
+	glTexParameteri(type, GL_TEXTURE_MAG_FILTER, gl_mm_filter);
 }
 
-void Texture2DArray::set_border_color(vec4 color) {
-	glBindTexture(GL_TEXTURE_2D_ARRAY, gl_texture_array);
-	glTexParameterfv(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_BORDER_COLOR, &color.x);
+void Texture::set_border_color(vec4 color) {
+	use_texture();
+	glTexParameterfv(get_gl_type(), GL_TEXTURE_BORDER_COLOR, &color.x);
+}
+
+CubemapTexture* CubemapTextureImport::load_file(const char* path) {
+	fprintf(stderr, "INFO: Loading cubemap at: %s\n", path);
+	int width, heigth, nrChannels;
+	vector<unsigned char*> cubemap_data;
+	for (size_t i = 0; i < 6; i++) {
+		auto face_path = string(path);
+		std::replace(face_path.begin(), face_path.end(), '#', std::to_string(i).c_str()[0]);
+		stbi_set_flip_vertically_on_load(true);
+		unsigned char* data = stbi_load(face_path.c_str(), &width, &heigth, &nrChannels, 0);
+		if (!data) {
+			fprintf(stderr, "ERROR: Failed to load texture at: %s\n %s\n", face_path.c_str(), stbi_failure_reason());
+			return nullptr;
+		}
+		fprintf(stderr, "\tLoading cubemap face at : %s\n", face_path.c_str());
+		cubemap_data.push_back(data);
+	}
+
+	auto cubemap = App::get_render_backend()->cubemaps.create();
+	cubemap->set_as_rgb8(width, heigth, cubemap_data);
+
+	for (auto d : cubemap_data) {
+		stbi_image_free(d);
+	}
+
+	return cubemap;
 }

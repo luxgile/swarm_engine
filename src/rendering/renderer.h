@@ -6,12 +6,13 @@
 #include <GLFW/glfw3.h>
 #include <vector>
 #include <string>
-#include "utils.h"
+#include "../utils.h"
 #include "glm/common.hpp"
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
-#include "MemPool.h"
+#include "../MemPool.h"
+#include "render_world.h"
 
 typedef unsigned int GL_ID;
 typedef unsigned int uint;
@@ -19,15 +20,14 @@ typedef unsigned int uint;
 using namespace glm;
 using namespace std;
 
-enum RenderMode {
-	Forward,
-	Deferred,
-};
-
+class Viewport;
+class RenderEnviroment;
+class RenderWorld;
 
 class Window {
 public:
 	GLFWwindow* gl_wnd;
+	Viewport* vp;
 
 public:
 	Window(ivec2 size, string title);
@@ -60,6 +60,7 @@ enum SamplerID {
 	MRA,
 	Emissive,
 	Shadows,
+	Skybox,
 };
 
 class Shader {
@@ -105,8 +106,8 @@ public:
 	void set_vertices(vector<Vertex> vertices);
 
 	void use_mesh() const;
-	uint get_vertex_count() { return vertex_count; }
-	uint get_elements_count() { return elements_count; }
+	uint get_vertex_count() const { return vertex_count; }
+	uint get_elements_count() const { return elements_count; } 
 };
 
 enum TextureFormat {
@@ -126,14 +127,15 @@ enum TextureFilter {
 };
 class Texture {
 public:
+	virtual uint get_gl_type() const = 0;
 	virtual GL_ID get_gl_id() const = 0;
-	virtual	void activate(uint id) = 0;
-	virtual void use_texture() = 0;
+	virtual	void activate(uint id);
+	virtual void use_texture();
 	virtual void set_as_depth(uint width, uint heigth, unsigned char* data) = 0;
 	virtual void set_as_rgb8(uint width, uint heigth, unsigned char* data) = 0;
-	virtual void set_wrap(TextureWrap wrap) = 0;
-	virtual void set_filter(TextureFilter wrap) = 0;
-	virtual void set_border_color(vec4 color) = 0;
+	virtual void set_wrap(TextureWrap wrap);
+	virtual void set_filter(TextureFilter wrap);
+	virtual void set_border_color(vec4 color);
 };
 
 class Texture2D : public Texture {
@@ -148,9 +150,9 @@ public:
 	void use_texture() override;
 	void set_as_depth(uint width, uint heigth, unsigned char* data) override;
 	void set_as_rgb8(uint width, uint heigth, unsigned char* data) override;
-	void set_wrap(TextureWrap wrap) override;
-	void set_filter(TextureFilter wrap) override;
-	void set_border_color(vec4 color) override;
+
+	// Inherited via Texture
+	uint get_gl_type() const override;
 };
 
 
@@ -179,9 +181,9 @@ public:
 	void set_as_depth(uint width, uint heigth, uint depth, unsigned char* data);
 	void set_as_rgb8(uint width, uint heigth, unsigned char* data) override;
 	void set_as_rgb8(uint width, uint heigth, uint depth, unsigned char* data);
-	void set_wrap(TextureWrap wrap) override;
-	void set_filter(TextureFilter wrap) override;
-	void set_border_color(vec4 color) override;
+
+	// Inherited via Texture
+	uint get_gl_type() const override;
 };
 
 
@@ -210,8 +212,17 @@ public:
 	void set_output_color(RenderBuffer* rbo, uint id);
 };
 
-class CubemapTexture {
+class CubemapTexture : public Texture {
+	GL_ID gl_cubemap;
 
+public:
+	CubemapTexture();
+
+	GL_ID get_gl_id() const override;
+	uint get_gl_type() const override;
+	void set_as_depth(uint width, uint heigth, unsigned char* data) override;
+	void set_as_rgb8(uint width, uint heigth, unsigned char* data) override;
+	void set_as_rgb8(uint width, uint heigth, vector<unsigned char*> data);
 };
 
 class Model {
@@ -246,12 +257,6 @@ public:
 	Material* get_material() { return material; }
 };
 
-struct ShadowMap {
-	Texture2D* shadowmap;
-
-	ShadowMap();
-};
-
 enum LightType {
 	Point = 0,
 	Directional,
@@ -268,10 +273,8 @@ struct Light {
 
 	void set_cast_shadows(bool state);
 	bool get_cast_shadows() { return cast_shadows; }
-	ShadowMap* get_shadow_map() const;
 
 private:
-	ShadowMap* shadow_map;
 	bool cast_shadows;
 };
 
@@ -290,9 +293,13 @@ public:
 	void process_ai_node(Model* model, aiNode* node, const aiScene* scene);
 	Mesh* process_ai_mesh(aiMesh* mesh, const aiScene* scene);
 };
-class TextureImport : FileImport<Texture2D> {
+class Texture2DImport : FileImport<Texture2D> {
 public:
 	Texture2D* load_file(const char* path) override;
+};
+class CubemapTextureImport : FileImport<CubemapTexture> {
+public:
+	CubemapTexture* load_file(const char* path) override;
 };
 
 class RendererBackend {
@@ -302,35 +309,36 @@ private:
 	Texture2DArray* shadowmap_textures;
 
 public:
-	vec3 clear_color = vec3(1.0f);
-	vec3 ambient_color = vec3(0.3f, 0.3f, 0.1f);
-	float ambient_intensity = 0.3f;
-	RenderMode mode = RenderMode::Forward;
 
 	std::vector<Window*> windows;
+	MemPool<RenderWorld> worlds;
+	MemPool<Viewport> viewports;
+	MemPool<RenderEnviroment> enviroments;
 	MemPool<Shader> shaders;
 	MemPool<Mesh> meshes;
-	MemPool<Model> models;
 	MemPool<Texture2D> textures;
 	MemPool<Texture2DArray> texture_arrays;
+	MemPool<CubemapTexture> cubemaps;
 	MemPool<RenderBuffer> render_buffers;
 	MemPool<FrameBuffer> frame_buffers;
-	MemPool<Camera> cameras;
 	MemPool<Light> lights;
-	MemPool<ShadowMap> shadow_maps;
+	MemPool<Model> models;
+	MemPool<Camera> cameras;
 	MemPool<Material> materials;
 	MemPool<Visual> visuals;
+
 
 private:
 	void setup_gl();
 	void setup_glew();
 
-	void render_visuals_forward();
-	void render_shadowmaps();
+	void render_shadowmaps(vector<Light*> lights, vector<Visual*> visuals);
+	void render_skybox(RenderWorld* world);
+	void render_visuals(mat4 proj, mat4 view, vector<Visual*> visuals, Material* mat_override);
+	void render_visual(Material* material, Model* model);
+	void update_material_globals(RenderWorld* world);
+	void render_visual(Visual* visual);
 
-	void render_visuals_deferred();
-
-	void render_visuals(mat4 proj, mat4 view, Material* mat_override);
 
 public:
 	RendererBackend();
@@ -339,8 +347,6 @@ public:
 	Window* create_window(ivec2 size, string title);
 	void destroy_window(Window* wnd);
 
-	void render_frame();
-	void update_material_globals();
-
-	Camera* get_active_camera();
+	void render_worlds();
+	void render_world(RenderWorld* world);
 };

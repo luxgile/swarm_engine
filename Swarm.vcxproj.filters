@@ -21,7 +21,7 @@
     <ClCompile Include="src\core.cpp">
       <Filter>Archivos de origen</Filter>
     </ClCompile>
-    <ClCompile Include="src\renderer.cpp">
+    <ClCompile Include="src\rendering\renderer.cpp">
       <Filter>Archivos de origen</Filter>
     </ClCompile>
     <ClCompile Include="src\utils.h">
@@ -30,15 +30,21 @@
     <ClCompile Include="src\utils.cpp">
       <Filter>Archivos de origen</Filter>
     </ClCompile>
+    <ClCompile Include="src\rendering\render_world.cpp">
+      <Filter>Archivos de origen</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\core.h">
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
-    <ClInclude Include="src\renderer.h">
+    <ClInclude Include="src\rendering\renderer.h">
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
     <ClInclude Include="src\MemPool.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="src\rendering\render_world.h">
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
   </ItemGroup>
@@ -51,12 +57,32 @@
     <None Include="vcpkg.json" />
     <None Include="vcpkg-configuration.json" />
     <None Include="res\monkey.glb" />
-    <None Include="res\cube.glb" />
+    <None Include="res\primitives\cube.glb" />
     <None Include="res\depth.vert" />
     <None Include="res\depth.frag" />
+    <None Include="res\skybox\skybox.frag" />
+    <None Include="res\skybox\skybox.vert" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="res\uv_texture.png">
+      <Filter>Archivos de recursos</Filter>
+    </Image>
+    <Image Include="res\skybox\skybox0.png">
+      <Filter>Archivos de recursos</Filter>
+    </Image>
+    <Image Include="res\skybox\skybox1.png">
+      <Filter>Archivos de recursos</Filter>
+    </Image>
+    <Image Include="res\skybox\skybox2.png">
+      <Filter>Archivos de recursos</Filter>
+    </Image>
+    <Image Include="res\skybox\skybox3.png">
+      <Filter>Archivos de recursos</Filter>
+    </Image>
+    <Image Include="res\skybox\skybox4.png">
+      <Filter>Archivos de recursos</Filter>
+    </Image>
+    <Image Include="res\skybox\skybox5.png">
       <Filter>Archivos de recursos</Filter>
     </Image>
   </ItemGroup>

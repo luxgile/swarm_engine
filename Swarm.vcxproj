@@ -131,7 +131,8 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="src\core.cpp" />
-    <ClCompile Include="src\renderer.cpp" />
+    <ClCompile Include="src\rendering\renderer.cpp" />
+    <ClCompile Include="src\rendering\render_world.cpp" />
     <ClCompile Include="src\Swarm.cpp" />
     <ClCompile Include="src\utils.cpp" />
     <ClCompile Include="src\utils.h" />
@@ -139,22 +140,31 @@
   <ItemGroup>
     <ClInclude Include="src\core.h" />
     <ClInclude Include="src\MemPool.h" />
-    <ClInclude Include="src\renderer.h" />
+    <ClInclude Include="src\rendering\renderer.h" />
+    <ClInclude Include="src\rendering\render_world.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include=".gitignore" />
-    <None Include="res\cube.glb" />
+    <None Include="res\primitives\cube.glb" />
     <None Include="res\depth.frag" />
     <None Include="res\depth.vert" />
     <None Include="res\monkey.glb" />
     <None Include="res\pbr.frag" />
     <None Include="res\pbr.vert" />
+    <None Include="res\skybox\skybox.frag" />
+    <None Include="res\skybox\skybox.vert" />
     <None Include="res\unlit.frag" />
     <None Include="res\unlit.vert" />
     <None Include="vcpkg-configuration.json" />
     <None Include="vcpkg.json" />
   </ItemGroup>
   <ItemGroup>
+    <Image Include="res\skybox\skybox0.png" />
+    <Image Include="res\skybox\skybox1.png" />
+    <Image Include="res\skybox\skybox2.png" />
+    <Image Include="res\skybox\skybox3.png" />
+    <Image Include="res\skybox\skybox4.png" />
+    <Image Include="res\skybox\skybox5.png" />
     <Image Include="res\uv_texture.png" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
