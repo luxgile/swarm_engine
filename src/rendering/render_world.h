@@ -9,19 +9,19 @@ using namespace std;
 
 class Camera;
 struct Light;
-class Material;
-class Visual;
-class FrameBuffer;
-class Texture2D;
+class GPUMaterial;
+class GPUVisual;
+class GPUFrameBuffer;
+class GPUTexture2D;
 
 class Viewport {
 	vec2 size;
-	Texture2D* fbo_color;
-	Texture2D* fbo_depth_stencil;
+	GPUTexture2D* fbo_color;
+	GPUTexture2D* fbo_depth_stencil;
 
 public:
 	Viewport();
-	FrameBuffer* fbo;
+	GPUFrameBuffer* fbo;
 	void use_viewport();
 	void set_size(vec2 size);
 	vec2 get_size() const { return size; }
@@ -33,7 +33,7 @@ public:
 	vec3 ambient_color = vec3(0.3f, 0.3f, 0.1f);
 	float ambient_intensity = 0.3f;
 
-	Visual* skybox;
+	GPUVisual* skybox;
 };
 
 class RenderWorld {
@@ -51,8 +51,8 @@ public:
 	
 	vector<Camera*> cameras;
 	vector<Light*> lights;
-	vector<Material*> materials;
-	vector<Visual*> visuals;
+	vector<GPUMaterial*> materials;
+	vector<GPUVisual*> visuals;
 
 	Camera* get_active_camera();
 };

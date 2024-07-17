@@ -70,7 +70,7 @@ enum SamplerID {
 	Skybox,
 };
 
-class Shader {
+class GPUShader {
 	GL_ID gl_program;
 
 private:
@@ -99,7 +99,7 @@ struct Vertex {
 	vec2 coords = vec2(0.0f, 0.0f);
 };
 
-class Mesh {
+class GPUMesh {
 	GL_ID gl_vertex_array; // Holds vertex structure
 	uint vertex_count;
 	GL_ID gl_vertex_buffer; // Holds vertex data
@@ -107,7 +107,7 @@ class Mesh {
 	GL_ID gl_elements_buffer; // Holds triangle data
 
 public:
-	Mesh();
+	GPUMesh();
 
 	void set_triangles(vector<unsigned int> indices);
 	void set_vertices(vector<Vertex> vertices);
@@ -132,7 +132,7 @@ enum TextureFilter {
 	Nearest,
 	Linear,
 };
-class Texture {
+class GPUTexture {
 public:
 	virtual uint get_gl_type() const = 0;
 	virtual GL_ID get_gl_id() const = 0;
@@ -146,11 +146,11 @@ public:
 	virtual void set_border_color(vec4 color);
 };
 
-class Texture2D : public Texture {
+class GPUTexture2D : public GPUTexture {
 	GL_ID gl_texture;
 
 public:
-	Texture2D();
+	GPUTexture2D();
 
 public:
 	GL_ID get_gl_id() const override { return gl_texture; }
@@ -165,21 +165,21 @@ public:
 
 
 /// @brief Used with FrameBuffers for fast offscreen rendering. Only drawback is that it's not possible to read from them.
-class RenderBuffer {
+class GPURenderBuffer {
 	GL_ID gl_rbo;
 
 public:
-	RenderBuffer();
+	GPURenderBuffer();
 
 	GL_ID get_gl_id() { return gl_rbo; }
 	void set_format(TextureFormat format, vec2 size);
 };
 
-class Texture2DArray : public Texture {
+class GPUTexture2DArray : public GPUTexture {
 	GL_ID gl_texture_array;
 
 public:
-	Texture2DArray();
+	GPUTexture2DArray();
 
 	// Heredado vía Texture
 	GL_ID get_gl_id() const override;
@@ -197,14 +197,14 @@ public:
 
 
 /// @brief When used, all render operations are drawn into the frame buffer. Needs a texture or render buffer attached as output.
-class FrameBuffer {
+class GPUFrameBuffer {
 	GL_ID gl_fbo;
 
 	void set_format_2D(uint attachment, uint texture_type, GL_ID id);
 	void set_format_3D(uint attachment, uint texture_type, uint layer, GL_ID id);
 
 public:
-	FrameBuffer();
+	GPUFrameBuffer();
 
 	static void unbind_framebuffer();
 	GL_ID get_gl_id() { return gl_fbo; }
@@ -212,20 +212,20 @@ public:
 	void use_framebuffer();
 	void use_read();
 	void use_draw();
-	void set_output_depth(Texture2D* texture);
-	void set_output_depth(Texture2DArray* texture, uint layer);
-	void set_output_depth(RenderBuffer* rbo);
-	void set_output_depth_stencil(Texture2D* texture);
-	void set_output_depth_stencil(RenderBuffer* rbo);
-	void set_output_color(Texture2D* texture, uint id);
-	void set_output_color(RenderBuffer* rbo, uint id);
+	void set_output_depth(GPUTexture2D* texture);
+	void set_output_depth(GPUTexture2DArray* texture, uint layer);
+	void set_output_depth(GPURenderBuffer* rbo);
+	void set_output_depth_stencil(GPUTexture2D* texture);
+	void set_output_depth_stencil(GPURenderBuffer* rbo);
+	void set_output_color(GPUTexture2D* texture, uint id);
+	void set_output_color(GPURenderBuffer* rbo, uint id);
 };
 
-class CubemapTexture : public Texture {
+class GPUCubemapTexture : public GPUTexture {
 	GL_ID gl_cubemap;
 
 public:
-	CubemapTexture();
+	GPUCubemapTexture();
 
 	GL_ID get_gl_id() const override;
 	uint get_gl_type() const override;
@@ -234,26 +234,26 @@ public:
 	void set_as_rgb8(uint width, uint heigth, vector<unsigned char*> data);
 };
 
-class Model {
+class GPUModel {
 public:
-	vector<Mesh*> meshes;
+	vector<GPUMesh*> meshes;
 };
 
-class Material {
-	Shader* shader;
-	vector<Texture*> textures = vector<Texture*>(16, nullptr);
+class GPUMaterial {
+	GPUShader* shader;
+	vector<GPUTexture*> textures = vector<GPUTexture*>(16, nullptr);
 public:
-	Material();
+	GPUMaterial();
 	/// @brief Tell GL to render using this material.
 	void use_material() const;
-	void set_shader(Shader* shader) { this->shader = shader; }
-	Shader* get_shader() { return shader; }
-	void set_texture(uint id, Texture* texture) { this->textures[id] = texture; }
-	void set_texture(SamplerID id, Texture* texture) { this->textures[id] = texture; }
+	void set_shader(GPUShader* shader) { this->shader = shader; }
+	GPUShader* get_shader() { return shader; }
+	void set_texture(uint id, GPUTexture* texture) { this->textures[id] = texture; }
+	void set_texture(SamplerID id, GPUTexture* texture) { this->textures[id] = texture; }
 	virtual void update_internals() {}
 };
 
-class PbrMaterial : public Material {
+class GPUPbrMaterial : public GPUMaterial {
 public:
 	vec4 albedo = vec4(1.0, 1.0, 1.0, 1.0);
 	vec4 emissive = vec4(0.0, 0.0, 0.0, 0.0);
@@ -264,18 +264,18 @@ public:
 	void update_internals() override;
 };
 
-class Visual {
+class GPUVisual {
 	mat4 xform;
-	Material* material;
-	Model* model;
+	GPUMaterial* material;
+	GPUModel* model;
 
 public:
 	void set_xform(mat4 xform) { this->xform = xform; }
 	mat4* get_xform() { return &xform; }
-	void set_model(Model* model) { this->model = model; }
-	Model* get_model() { return model; }
-	void set_material(Material* shader) { this->material = shader; }
-	Material* get_material() { return material; }
+	void set_model(GPUModel* model) { this->model = model; }
+	GPUModel* get_model() { return model; }
+	void set_material(GPUMaterial* shader) { this->material = shader; }
+	GPUMaterial* get_material() { return material; }
 };
 
 enum LightType {
@@ -299,35 +299,12 @@ private:
 	bool cast_shadows;
 };
 
-template <typename T>
-class FileImport {
-public:
-	virtual T* load_file(const char* path) = 0;
-};
-class ShaderImport : FileImport<Shader> {
-public:
-	Shader* load_file(const char* path) override;
-};
-class ModelImport : FileImport<Model> {
-public:
-	Model* load_file(const char* path) override;
-	void process_ai_node(Model* model, aiNode* node, const aiScene* scene);
-	Mesh* process_ai_mesh(aiMesh* mesh, const aiScene* scene);
-};
-class Texture2DImport : FileImport<Texture2D> {
-public:
-	Texture2D* load_file(const char* path) override;
-};
-class CubemapTextureImport : FileImport<CubemapTexture> {
-public:
-	CubemapTexture* load_file(const char* path) override;
-};
 
 class RendererBackend {
 private:
-	FrameBuffer* shadows_fbo;
-	Material* shadowmap_mat;
-	Texture2DArray* shadowmap_textures;
+	GPUFrameBuffer* shadows_fbo;
+	GPUMaterial* shadowmap_mat;
+	GPUTexture2DArray* shadowmap_textures;
 
 	bool imgui_installed;
 
@@ -337,18 +314,18 @@ public:
 	MemPool<RenderWorld> worlds;
 	MemPool<Viewport> viewports;
 	MemPool<RenderEnviroment> enviroments;
-	MemPool<Shader> shaders;
-	MemPool<Mesh> meshes;
-	MemPool<Texture2D> textures;
-	MemPool<Texture2DArray> texture_arrays;
-	MemPool<CubemapTexture> cubemaps;
-	MemPool<RenderBuffer> render_buffers;
-	MemPool<FrameBuffer> frame_buffers;
+	MemPool<GPUShader> shaders;
+	MemPool<GPUMesh> meshes;
+	MemPool<GPUTexture2D> textures;
+	MemPool<GPUTexture2DArray> texture_arrays;
+	MemPool<GPUCubemapTexture> cubemaps;
+	MemPool<GPURenderBuffer> render_buffers;
+	MemPool<GPUFrameBuffer> frame_buffers;
 	MemPool<Light> lights;
-	MemPool<Model> models;
+	MemPool<GPUModel> models;
 	MemPool<Camera> cameras;
-	MemPool<Material> materials;
-	MemPool<Visual> visuals;
+	MemPool<GPUMaterial> materials;
+	MemPool<GPUVisual> visuals;
 
 
 private:
@@ -357,12 +334,12 @@ private:
 	void setup_internals();
 	void setup_imgui();
 
-	void render_shadowmaps(vector<Light*> lights, vector<Visual*> visuals);
+	void render_shadowmaps(vector<Light*> lights, vector<GPUVisual*> visuals);
 	void render_skybox(RenderWorld* world);
-	void render_visuals(mat4 proj, mat4 view, vector<Visual*> visuals, Material* mat_override);
-	void render_visual(Material* material, Model* model);
+	void render_visuals(mat4 proj, mat4 view, vector<GPUVisual*> visuals, GPUMaterial* mat_override);
+	void render_visual(GPUMaterial* material, GPUModel* model);
 	void update_material_globals(RenderWorld* world);
-	void render_visual(Visual* visual);
+	void render_visual(GPUVisual* visual);
 
 
 public:

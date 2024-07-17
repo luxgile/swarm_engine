@@ -4,12 +4,14 @@
 #include "rendering/renderer.h"
 #define GLM_ENABLE_EXPERIMENTAL
 #include "glm/gtx/quaternion.hpp"
+#include "assets/assets.h"
 
 class App {
 private:
 	unsigned int target_fps;
 
 	std::unique_ptr<RendererBackend> render_backend;
+	std::unique_ptr<AssetBackend> asset_backend;
 
 	static App* singleton;
 
@@ -25,6 +27,9 @@ public:
 
 	static RendererBackend* get_render_backend() { return singleton->_get_render_backend(); }
 	RendererBackend* _get_render_backend() { return render_backend.get(); }
+
+	static AssetBackend* get_asset_backend() { return singleton->_get_asset_backend(); }
+	AssetBackend* _get_asset_backend() { return asset_backend.get(); }
 
 	void app_loop();
 };

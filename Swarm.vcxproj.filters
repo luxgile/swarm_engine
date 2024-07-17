@@ -39,6 +39,9 @@
     <ClCompile Include="src\imgui\imgui_impl_opengl3.cpp">
       <Filter>Archivos de origen</Filter>
     </ClCompile>
+    <ClCompile Include="src\assets\assets.cpp">
+      <Filter>Archivos de origen</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\core.h">
@@ -60,6 +63,9 @@
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
     <ClInclude Include="src\imgui\imgui_impl_opengl3_loader.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="src\assets\assets.h">
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
   </ItemGroup>

@@ -1,6 +1,7 @@
 #include "core.h"
 #include <iostream>
 #include <glm/gtc/matrix_transform.hpp>
+#include "assets/assets.h"
 
 App* App::singleton = nullptr;
 
@@ -12,11 +13,20 @@ App::App() {
 
 	singleton = this;
 
+	asset_backend = std::make_unique<AssetBackend>();
+	asset_backend.get()->set_asset_folder(string("E:/dev/Swarm/res/"));
+	asset_backend.get()->register_importer<ShaderImport>();
+	asset_backend.get()->register_importer<ModelImport>();
+	asset_backend.get()->register_importer<CubemapTextureImport>();
+	asset_backend.get()->register_importer<Texture2DImport>();
+
 	render_backend = std::make_unique<RendererBackend>();
 	render_backend.get()->setup();
 }
 
 void App::app_loop() {
+	auto assets = App::get_asset_backend();
+
 	auto render = get_render_backend();
 	auto window = render->get_main_window();
 	auto viewport = render->viewports.create();
@@ -24,12 +34,7 @@ void App::app_loop() {
 	auto world = render->worlds.create();
 	world->vp = viewport;
 
-	auto shader_importer = ShaderImport();
-	auto model_importer = ModelImport();
-	auto texture_importer = Texture2DImport();
-	auto cubemap_importer = CubemapTextureImport();
-
-	auto shader = shader_importer.load_file("E:/dev/Swarm/res/pbr");
+	auto shader = assets->load_file<GPUShader>("pbr");
 	shader->set_sampler_id("albedoMap", SamplerID::Albedo);
 	shader->set_sampler_id("mraMap", SamplerID::MRA);
 	shader->set_sampler_id("normalMap", SamplerID::Normal);
@@ -37,16 +42,16 @@ void App::app_loop() {
 	shader->set_sampler_id("shadowMaps", SamplerID::Shadows);
 	shader->set_sampler_id("skyboxMap", SamplerID::Skybox);
 
-	auto monkey_model = model_importer.load_file("E:/dev/Swarm/res/monkey.glb");
-	auto cube_model = model_importer.load_file("E:/dev/Swarm/res/primitives/cube.glb");
+	auto monkey_model = assets->load_file<GPUModel>("monkey.glb");
+	auto cube_model = assets->load_file<GPUModel>("primitives/cube.glb");
 
-	auto uv_texture = texture_importer.load_file("E:/dev/Swarm/res/uv_texture.png");
+	auto uv_texture = assets->load_file<GPUTexture2D>("uv_texture.png");
 
 	auto skybox = render->visuals.create();
-	auto skybox_shader = shader_importer.load_file("E:/dev/Swarm/res/skybox/skybox");
+	auto skybox_shader = assets->load_file<GPUShader>("skybox/skybox");
 	auto skybox_material = render->materials.create();
 	skybox_material->set_shader(skybox_shader);
-	CubemapTexture* skybox_cube = cubemap_importer.load_file("E:/dev/Swarm/res/skybox/skybox#.png");
+	auto skybox_cube = assets->load_file<GPUCubemapTexture>("skybox/skybox#.png");
 	skybox_cube->set_filter(TextureFilter::Linear);
 	skybox_cube->set_wrap(TextureWrap::ClampEdge);
 	skybox_material->set_texture(SamplerID::Skybox, skybox_cube);
@@ -54,7 +59,7 @@ void App::app_loop() {
 	skybox->set_model(cube_model);
 	world->env->skybox = skybox;
 
-	auto material = render->materials.create<PbrMaterial>();
+	auto material = render->materials.create<GPUPbrMaterial>();
 	material->set_shader(shader);
 	material->set_texture(SamplerID::Albedo, uv_texture);
 	material->set_texture(SamplerID::Skybox, skybox_cube);

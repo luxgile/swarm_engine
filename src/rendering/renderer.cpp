@@ -46,8 +46,7 @@ void RendererBackend::setup_glew() {
 }
 
 void RendererBackend::setup_internals() {
-	auto importer = ShaderImport();
-	auto shadowmap_shader = importer.load_file("E:/dev/Swarm/res/depth");
+	auto shadowmap_shader = App::get_asset_backend()->load_file<GPUShader>("depth");
 	shadowmap_mat = materials.create();
 	shadowmap_mat->set_shader(shadowmap_shader);
 
@@ -100,7 +99,7 @@ void RendererBackend::debug_backend(RenderWorld* world) {
 	world->on_ui_pass.connect([this, &active]() {
 			ImGui::Begin("Render Backend", &active);
 			for (auto m : materials) {
-				if (auto material = static_cast<PbrMaterial*>(m)) {
+				if (auto material = static_cast<GPUPbrMaterial*>(m)) {
 					ImGui::ColorEdit4("Color", &material->albedo.x);
 					ImGui::SliderFloat("Metallic", &material->metallic, 0, 1);
 					ImGui::SliderFloat("Roughness", &material->roughness, 0, 1);
@@ -146,10 +145,10 @@ void RendererBackend::render_world(RenderWorld* world) {
 
 	world->on_post_render();
 
-	FrameBuffer::unbind_framebuffer();
+	GPUFrameBuffer::unbind_framebuffer();
 }
 
-void RendererBackend::render_shadowmaps(vector<Light*> lights, vector<Visual*> visuals) {
+void RendererBackend::render_shadowmaps(vector<Light*> lights, vector<GPUVisual*> visuals) {
 
 	for (size_t i = 0; i < lights.size(); i++) {
 		auto light = lights[i];
@@ -172,7 +171,7 @@ void RendererBackend::render_shadowmaps(vector<Light*> lights, vector<Visual*> v
 		shadowmap_textures->activate(SamplerID::Albedo);
 		render_visuals(proj, view, visuals, shadowmap_mat);
 
-		FrameBuffer::unbind_framebuffer();
+		GPUFrameBuffer::unbind_framebuffer();
 	}
 
 }
@@ -196,7 +195,7 @@ void RendererBackend::render_skybox(RenderWorld* world) {
 	glCullFace(GL_BACK);
 }
 
-void RendererBackend::render_visuals(mat4 proj, mat4 view, vector<Visual*> visuals, Material* mat_override = nullptr) {
+void RendererBackend::render_visuals(mat4 proj, mat4 view, vector<GPUVisual*> visuals, GPUMaterial* mat_override = nullptr) {
 	for (auto v : visuals) {
 		auto mvp = proj * view * *v->get_xform();
 		auto mat = mat_override ? mat_override : v->get_material();
@@ -206,11 +205,11 @@ void RendererBackend::render_visuals(mat4 proj, mat4 view, vector<Visual*> visua
 	}
 }
 
-void RendererBackend::render_visual(Visual* visual) {
+void RendererBackend::render_visual(GPUVisual* visual) {
 	render_visual(visual->get_material(), visual->get_model());
 }
 
-void RendererBackend::render_visual(Material* material, Model* model) {
+void RendererBackend::render_visual(GPUMaterial* material, GPUModel* model) {
 	material->use_material();
 
 	for (auto mesh : model->meshes) {
@@ -297,7 +296,7 @@ ivec2 Window::get_size() {
 	return size;
 }
 
-unsigned int Shader::compile_source(ShaderSrcType type, const char* src) {
+unsigned int GPUShader::compile_source(ShaderSrcType type, const char* src) {
 	unsigned int compiled = glCreateShader(to_gl_define(type));
 	glShaderSource(compiled, 1, &src, NULL);
 	glCompileShader(compiled);
@@ -312,7 +311,7 @@ unsigned int Shader::compile_source(ShaderSrcType type, const char* src) {
 	return compiled;
 }
 
-void Shader::compile_shader(const char* vert, const char* frag) {
+void GPUShader::compile_shader(const char* vert, const char* frag) {
 	auto vertex = compile_source(ShaderSrcType::VertexSrc, vert);
 	auto fragment = compile_source(ShaderSrcType::FragmentSrc, frag);
 
@@ -333,57 +332,57 @@ void Shader::compile_shader(const char* vert, const char* frag) {
 	glDeleteShader(fragment);
 }
 
-void Shader::use_shader() const {
+void GPUShader::use_shader() const {
 	glUseProgram(gl_program);
 }
 
-void Shader::set_sampler_id(string uniform, SamplerID id) {
+void GPUShader::set_sampler_id(string uniform, SamplerID id) {
 	set_sampler_id(uniform, (uint)id);
 }
 
-void Shader::set_sampler_id(string uniform, uint id) {
+void GPUShader::set_sampler_id(string uniform, uint id) {
 	use_shader();
 	unsigned int uniform_loc = glGetUniformLocation(gl_program, uniform.c_str());
 	glUniform1i(uniform_loc, id);
 }
 
-void Shader::set_bool(const char* uniform, bool value) const {
+void GPUShader::set_bool(const char* uniform, bool value) const {
 	use_shader();
 	unsigned int uniform_loc = glGetUniformLocation(gl_program, uniform);
 	glUniform1i(uniform_loc, (int)value);
 }
 
-void Shader::set_int(const char* uniform, int value) const {
+void GPUShader::set_int(const char* uniform, int value) const {
 	use_shader();
 	unsigned int uniform_loc = glGetUniformLocation(gl_program, uniform);
 	glUniform1i(uniform_loc, value);
 }
 
-void Shader::set_float(const char* uniform, float value) const {
+void GPUShader::set_float(const char* uniform, float value) const {
 	use_shader();
 	unsigned int uniform_loc = glGetUniformLocation(gl_program, uniform);
 	glUniform1f(uniform_loc, value);
 }
 
-void Shader::set_vec2(const char* uniform, vec2 value) const {
+void GPUShader::set_vec2(const char* uniform, vec2 value) const {
 	use_shader();
 	unsigned int uniform_loc = glGetUniformLocation(gl_program, uniform);
 	glUniform2f(uniform_loc, value.x, value.y);
 }
 
-void Shader::set_vec3(const char* uniform, vec3 value) const {
+void GPUShader::set_vec3(const char* uniform, vec3 value) const {
 	use_shader();
 	unsigned int uniform_loc = glGetUniformLocation(gl_program, uniform);
 	glUniform3f(uniform_loc, value.x, value.y, value.z);
 }
 
-void Shader::set_vec4(const char* uniform, vec4 value) const {
+void GPUShader::set_vec4(const char* uniform, vec4 value) const {
 	use_shader();
 	unsigned int uniform_loc = glGetUniformLocation(gl_program, uniform);
 	glUniform4f(uniform_loc, value.x, value.y, value.z, value.w);
 }
 
-void Shader::set_matrix4(const char* uniform, mat4 matrix) const {
+void GPUShader::set_matrix4(const char* uniform, mat4 matrix) const {
 	use_shader();
 	unsigned int uniform_loc = glGetUniformLocation(gl_program, uniform);
 	glUniformMatrix4fv(uniform_loc, 1, GL_FALSE, glm::value_ptr(matrix));
@@ -411,7 +410,7 @@ uint to_gl(TextureFormat format) {
 	return 0;
 }
 
-Mesh::Mesh() {
+GPUMesh::GPUMesh() {
 	elements_count = 0;
 	vertex_count = 0;
 	glGenVertexArrays(1, &gl_vertex_array);
@@ -419,14 +418,14 @@ Mesh::Mesh() {
 	glGenBuffers(1, &gl_elements_buffer);
 }
 
-void Mesh::set_triangles(vector<unsigned int> indices) {
+void GPUMesh::set_triangles(vector<unsigned int> indices) {
 	elements_count = indices.size();
 	glBindVertexArray(gl_vertex_array);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, gl_elements_buffer);
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(unsigned int) * indices.size(), &indices[0], GL_STATIC_DRAW);
 }
 
-void Mesh::set_vertices(vector<Vertex> vertices) {
+void GPUMesh::set_vertices(vector<Vertex> vertices) {
 	vertex_count = vertices.size();
 	glBindVertexArray(gl_vertex_array);
 	glBindBuffer(GL_ARRAY_BUFFER, gl_vertex_buffer);
@@ -444,7 +443,7 @@ void Mesh::set_vertices(vector<Vertex> vertices) {
 	glEnableVertexAttribArray(4);
 }
 
-void Mesh::use_mesh() const {
+void GPUMesh::use_mesh() const {
 	glBindVertexArray(gl_vertex_array);
 }
 
@@ -456,148 +455,40 @@ void Camera::set_proj(float fov, vec2 screen_size, vec2 near_far_plane) {
 	proj = perspectiveFov(fov, screen_size.x, screen_size.y, near_far_plane.x, near_far_plane.y);
 }
 
-Shader* ShaderImport::load_file(const char* path) {
-	fprintf(stderr, "INFO: loading shader at path: %s\n", path);
-	auto vert = utils::load_text(string(path).append(".vert").c_str());
-	auto frag = utils::load_text(string(path).append(".frag").c_str());
-
-	auto render_bd = App::get_render_backend();
-	Shader* shader = render_bd->shaders.create();
-	shader->compile_shader(vert.c_str(), frag.c_str());
-	return shader;
-}
-
-Model* ModelImport::load_file(const char* path) {
-	fprintf(stderr, "INFO: loading model at path: %s\n", path);
-	Assimp::Importer importer;
-	auto scene = importer.ReadFile(path, aiProcess_Triangulate | aiProcess_FlipUVs);
-	if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode) {
-		fprintf(stderr, "ERROR: loading model failed: %s\n", importer.GetErrorString());
-	}
-
-	Model* model = App::get_render_backend()->models.create();
-	process_ai_node(model, scene->mRootNode, scene);
-	return model;
-}
-
-void ModelImport::process_ai_node(Model* model, aiNode* node, const aiScene* scene) {
-	// process all the node's meshes (if any)
-	for (unsigned int i = 0; i < node->mNumMeshes; i++) {
-		aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
-		model->meshes.push_back(process_ai_mesh(mesh, scene));
-	}
-	// then do the same for each of its children
-	for (unsigned int i = 0; i < node->mNumChildren; i++) {
-		process_ai_node(model, node->mChildren[i], scene);
-	}
-}
-
-struct Vertex;
-Mesh* ModelImport::process_ai_mesh(aiMesh* mesh, const aiScene* scene) {
-	std::vector<Vertex> vertices;
-	std::vector<unsigned int> indices;
-	//vector<Texture> textures;
-
-	for (unsigned int i = 0; i < mesh->mNumVertices; i++) {
-		Vertex vertex;
-		vertex.position.x = mesh->mVertices[i].x;
-		vertex.position.y = mesh->mVertices[i].y;
-		vertex.position.z = mesh->mVertices[i].z;
-
-		vertex.normal.x = mesh->mNormals[i].x;
-		vertex.normal.y = mesh->mNormals[i].y;
-		vertex.normal.z = mesh->mNormals[i].z;
-
-		if (mesh->mTangents) {
-			vertex.tangent.x = mesh->mTangents[i].x;
-			vertex.tangent.y = mesh->mTangents[i].y;
-			vertex.tangent.z = mesh->mTangents[i].z;
-		}
-
-		if (mesh->mTextureCoords[0]) {
-			vertex.coords.x = mesh->mTextureCoords[0][i].x;
-			vertex.coords.y = mesh->mTextureCoords[0][i].y;
-		}
-		else {
-			vertex.coords = vec2(0.0f, 0.0f);
-		}
-
-		vertices.push_back(vertex);
-	}
-	// process indices
-	for (size_t i = 0; i < mesh->mNumFaces; i++) {
-		aiFace face = mesh->mFaces[i];
-		for (unsigned int j = 0; j < face.mNumIndices; j++)
-			indices.push_back(face.mIndices[j]);
-	}
-
-	// process material
-	if (mesh->mMaterialIndex >= 0) {
-		//aiMaterial* material = scene->mMaterials[mesh->mMaterialIndex];
-		//vector<Texture> diffuseMaps = loadMaterialTextures(material,
-		//	aiTextureType_DIFFUSE, "texture_diffuse");
-		//textures.insert(textures.end(), diffuseMaps.begin(), diffuseMaps.end());
-		//vector<Texture> specularMaps = loadMaterialTextures(material,
-		//	aiTextureType_SPECULAR, "texture_specular");
-		//textures.insert(textures.end(), specularMaps.begin(), specularMaps.end());
-	}
-
-	Mesh* gpu_mesh = App::get_render_backend()->meshes.create();
-	gpu_mesh->set_vertices(vertices);
-	gpu_mesh->set_triangles(indices);
-	return gpu_mesh;
-}
-
-Texture2D::Texture2D() {
+GPUTexture2D::GPUTexture2D() {
 	glGenTextures(1, &gl_texture);
 }
 
-void Texture2D::activate(uint id) {
+void GPUTexture2D::activate(uint id) {
 	glActiveTexture(GL_TEXTURE0 + id);
 	use_texture();
 }
 
-void Texture2D::use_texture() {
+void GPUTexture2D::use_texture() {
 	glBindTexture(GL_TEXTURE_2D, gl_texture);
 }
 
-void Texture2D::set_as_depth(uint width, uint heigth, unsigned char* data) {
+void GPUTexture2D::set_as_depth(uint width, uint heigth, unsigned char* data) {
 	glBindTexture(GL_TEXTURE_2D, gl_texture);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, width, heigth, 0, GL_DEPTH_COMPONENT, GL_FLOAT, data);
 	glGenerateMipmap(GL_TEXTURE_2D);
 }
 
-void Texture2D::set_as_rgb8(uint width, uint heigth, unsigned char* data) {
+void GPUTexture2D::set_as_rgb8(uint width, uint heigth, unsigned char* data) {
 	glBindTexture(GL_TEXTURE_2D, gl_texture);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, heigth, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
 	glGenerateMipmap(GL_TEXTURE_2D);
 }
 
-uint Texture2D::get_gl_type() const {
+uint GPUTexture2D::get_gl_type() const {
 	return GL_TEXTURE_2D;
 }
 
-Texture2D* Texture2DImport::load_file(const char* path) {
-	fprintf(stderr, "INFO: Loading texture at: %s\n", path);
-	int width, heigth, nrChannels;
-	stbi_set_flip_vertically_on_load(true);
-	unsigned char* data = stbi_load(path, &width, &heigth, &nrChannels, 0);
-	if (!data) {
-		fprintf(stderr, "ERROR: Failed to load texture at: %s\n %s\n", path, stbi_failure_reason());
-		return nullptr;
-	}
-
-	Texture2D* texture = App::get_render_backend()->textures.create();
-	texture->set_as_rgb8(width, heigth, data);
-	stbi_image_free(data);
-	return texture;
-}
-
-Material::Material() {
+GPUMaterial::GPUMaterial() {
 
 }
 
-void Material::use_material() const {
+void GPUMaterial::use_material() const {
 	for (size_t i = 0; i < textures.size(); i++) {
 		if (textures[i] == nullptr) continue;
 		textures[i]->activate(i);
@@ -605,76 +496,76 @@ void Material::use_material() const {
 	shader->use_shader();
 }
 
-void FrameBuffer::set_format_2D(uint attachment, uint texture_type, GL_ID id) {
+void GPUFrameBuffer::set_format_2D(uint attachment, uint texture_type, GL_ID id) {
 	use_framebuffer();
 	glFramebufferTexture2D(GL_FRAMEBUFFER, attachment, texture_type, id, 0);
 	unbind_framebuffer();
 }
 
-void FrameBuffer::set_format_3D(uint attachment, uint texture_type, uint layer, GL_ID id) {
+void GPUFrameBuffer::set_format_3D(uint attachment, uint texture_type, uint layer, GL_ID id) {
 	use_framebuffer();
 	glFramebufferTextureLayer(GL_FRAMEBUFFER, attachment, id, 0, layer);
 	unbind_framebuffer();
 }
 
-FrameBuffer::FrameBuffer() {
+GPUFrameBuffer::GPUFrameBuffer() {
 	glGenFramebuffers(1, &gl_fbo);
 }
 
-void FrameBuffer::unbind_framebuffer() {
+void GPUFrameBuffer::unbind_framebuffer() {
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
-bool FrameBuffer::is_complete() {
+bool GPUFrameBuffer::is_complete() {
 	return glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE;
 }
 
-void FrameBuffer::use_framebuffer() {
+void GPUFrameBuffer::use_framebuffer() {
 	glBindFramebuffer(GL_FRAMEBUFFER, gl_fbo);
 }
 
-void FrameBuffer::use_read() {
+void GPUFrameBuffer::use_read() {
 	glBindFramebuffer(GL_READ_FRAMEBUFFER, gl_fbo);
 }
 
-void FrameBuffer::use_draw() {
+void GPUFrameBuffer::use_draw() {
 	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, gl_fbo);
 }
 
-void FrameBuffer::set_output_depth(Texture2D* texture) {
+void GPUFrameBuffer::set_output_depth(GPUTexture2D* texture) {
 	set_format_2D(GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, texture->get_gl_id());
 }
 
-void FrameBuffer::set_output_depth(Texture2DArray* texture, uint layer) {
+void GPUFrameBuffer::set_output_depth(GPUTexture2DArray* texture, uint layer) {
 	set_format_3D(GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D_ARRAY, layer, texture->get_gl_id());
 }
 
-void FrameBuffer::set_output_depth(RenderBuffer* rbo) {
+void GPUFrameBuffer::set_output_depth(GPURenderBuffer* rbo) {
 	set_format_2D(GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, rbo->get_gl_id());
 }
 
-void FrameBuffer::set_output_depth_stencil(Texture2D* texture) {
+void GPUFrameBuffer::set_output_depth_stencil(GPUTexture2D* texture) {
 	set_format_2D(GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D, texture->get_gl_id());
 }
 
-void FrameBuffer::set_output_depth_stencil(RenderBuffer* rbo) {
+void GPUFrameBuffer::set_output_depth_stencil(GPURenderBuffer* rbo) {
 	set_format_2D(GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D, rbo->get_gl_id());
 }
 
-void FrameBuffer::set_output_color(Texture2D* texture, uint id = 0) {
+void GPUFrameBuffer::set_output_color(GPUTexture2D* texture, uint id = 0) {
 	set_format_2D(GL_COLOR_ATTACHMENT0 + id, GL_TEXTURE_2D, texture->get_gl_id());
 }
 
-void FrameBuffer::set_output_color(RenderBuffer* rbo, uint id) {
+void GPUFrameBuffer::set_output_color(GPURenderBuffer* rbo, uint id) {
 	set_format_2D(GL_COLOR_ATTACHMENT0 + id, GL_TEXTURE_2D, rbo->get_gl_id());
 
 }
 
-RenderBuffer::RenderBuffer() {
+GPURenderBuffer::GPURenderBuffer() {
 	glGenRenderbuffers(1, &gl_rbo);
 }
 
-void RenderBuffer::set_format(TextureFormat format, vec2 size) {
+void GPURenderBuffer::set_format(TextureFormat format, vec2 size) {
 	glBindRenderbuffer(GL_RENDERBUFFER, gl_rbo);
 	glRenderbufferStorage(GL_RENDERBUFFER, to_gl(format), size.x, size.y);
 }
@@ -698,86 +589,86 @@ void Light::set_cast_shadows(bool state) {
 	cast_shadows = state;
 }
 
-Texture2DArray::Texture2DArray() {
+GPUTexture2DArray::GPUTexture2DArray() {
 	glGenTextures(1, &gl_texture_array);
 }
 
-GL_ID Texture2DArray::get_gl_id() const {
+GL_ID GPUTexture2DArray::get_gl_id() const {
 	return gl_texture_array;
 }
 
-void Texture2DArray::activate(uint id) {
+void GPUTexture2DArray::activate(uint id) {
 	glActiveTexture(GL_TEXTURE0 + id);
 	use_texture();
 }
 
-void Texture2DArray::use_texture() {
+void GPUTexture2DArray::use_texture() {
 	glBindTexture(GL_TEXTURE_2D_ARRAY, gl_texture_array);
 }
 
-void Texture2DArray::set_as_depth(uint width, uint heigth, unsigned char* data) {
+void GPUTexture2DArray::set_as_depth(uint width, uint heigth, unsigned char* data) {
 	set_as_depth(width, heigth, 1, data);
 }
-void Texture2DArray::set_as_depth(uint width, uint heigth, uint depth, unsigned char* data) {
+void GPUTexture2DArray::set_as_depth(uint width, uint heigth, uint depth, unsigned char* data) {
 	glBindTexture(GL_TEXTURE_2D_ARRAY, gl_texture_array);
 	glTexImage3D(GL_TEXTURE_2D_ARRAY, 0, GL_DEPTH_COMPONENT, width, heigth, depth, 0, GL_DEPTH_COMPONENT, GL_FLOAT, data);
 	glGenerateMipmap(GL_TEXTURE_2D_ARRAY);
 }
 
-void Texture2DArray::set_as_rgb8(uint width, uint heigth, unsigned char* data) {
+void GPUTexture2DArray::set_as_rgb8(uint width, uint heigth, unsigned char* data) {
 	set_as_rgb8(width, heigth, 1, data);
 }
 
-void Texture2DArray::set_as_rgb8(uint width, uint heigth, uint depth, unsigned char* data) {
+void GPUTexture2DArray::set_as_rgb8(uint width, uint heigth, uint depth, unsigned char* data) {
 	glBindTexture(GL_TEXTURE_2D_ARRAY, gl_texture_array);
 	glTexImage3D(GL_TEXTURE_2D_ARRAY, 0, GL_RGB, width, heigth, depth, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
 	glGenerateMipmap(GL_TEXTURE_2D_ARRAY);
 }
 
-uint Texture2DArray::get_gl_type() const {
+uint GPUTexture2DArray::get_gl_type() const {
 	return GL_TEXTURE_2D_ARRAY;
 }
 
-CubemapTexture::CubemapTexture() {
+GPUCubemapTexture::GPUCubemapTexture() {
 	glGenTextures(1, &gl_cubemap);
 }
 
-GL_ID CubemapTexture::get_gl_id() const {
+GL_ID GPUCubemapTexture::get_gl_id() const {
 	return gl_cubemap;
 }
 
-void CubemapTexture::set_as_depth(uint width, uint heigth, unsigned char* data) {
+void GPUCubemapTexture::set_as_depth(uint width, uint heigth, unsigned char* data) {
 }
 
-void CubemapTexture::set_as_rgb8(uint width, uint heigth, unsigned char* data) {
+void GPUCubemapTexture::set_as_rgb8(uint width, uint heigth, unsigned char* data) {
 }
 
-void CubemapTexture::set_as_rgb8(uint width, uint heigth, vector<unsigned char*> data) {
+void GPUCubemapTexture::set_as_rgb8(uint width, uint heigth, vector<unsigned char*> data) {
 	use_texture();
 	for (size_t i = 0; i < 6; i++) {
 		glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB, width, heigth, 0, GL_RGB, GL_UNSIGNED_BYTE, data[i]);
 	}
 }
 
-uint CubemapTexture::get_gl_type() const {
+uint GPUCubemapTexture::get_gl_type() const {
 	return GL_TEXTURE_CUBE_MAP;
 }
 
-void Texture::activate(uint id) {
+void GPUTexture::activate(uint id) {
 	glActiveTexture(GL_TEXTURE0 + id);
 	use_texture();
 }
 
-void Texture::use_texture() {
+void GPUTexture::use_texture() {
 	glBindTexture(get_gl_type(), get_gl_id());
 }
 
-void Texture::set_as_depth_stencil(uint width, uint heigth, unsigned char* data) {
+void GPUTexture::set_as_depth_stencil(uint width, uint heigth, unsigned char* data) {
 	use_texture();
 	glTexImage2D(get_gl_type(), 0, GL_DEPTH24_STENCIL8, width, heigth, 0, GL_DEPTH_STENCIL, GL_UNSIGNED_INT_24_8, data);
 }
 
-void Texture::set_wrap(TextureWrap wrap) {
+void GPUTexture::set_wrap(TextureWrap wrap) {
 	uint gl_wrap = 0;
 	switch (wrap) {
 	case Repeat:
@@ -799,7 +690,7 @@ void Texture::set_wrap(TextureWrap wrap) {
 	glTexParameteri(type, GL_TEXTURE_WRAP_T, gl_wrap);
 }
 
-void Texture::set_filter(TextureFilter filter) {
+void GPUTexture::set_filter(TextureFilter filter) {
 	uint gl_filter = 0;
 	uint gl_mm_filter = 0;
 	switch (filter) {
@@ -819,39 +710,12 @@ void Texture::set_filter(TextureFilter filter) {
 	glTexParameteri(type, GL_TEXTURE_MAG_FILTER, gl_mm_filter);
 }
 
-void Texture::set_border_color(vec4 color) {
+void GPUTexture::set_border_color(vec4 color) {
 	use_texture();
 	glTexParameterfv(get_gl_type(), GL_TEXTURE_BORDER_COLOR, &color.x);
 }
 
-CubemapTexture* CubemapTextureImport::load_file(const char* path) {
-	fprintf(stderr, "INFO: Loading cubemap at: %s\n", path);
-	int width, heigth, nrChannels;
-	vector<unsigned char*> cubemap_data;
-	for (size_t i = 0; i < 6; i++) {
-		auto face_path = string(path);
-		std::replace(face_path.begin(), face_path.end(), '#', std::to_string(i).c_str()[0]);
-		stbi_set_flip_vertically_on_load(true);
-		unsigned char* data = stbi_load(face_path.c_str(), &width, &heigth, &nrChannels, 0);
-		if (!data) {
-			fprintf(stderr, "ERROR: Failed to load texture at: %s\n %s\n", face_path.c_str(), stbi_failure_reason());
-			return nullptr;
-		}
-		fprintf(stderr, "\tLoading cubemap face at : %s\n", face_path.c_str());
-		cubemap_data.push_back(data);
-	}
-
-	auto cubemap = App::get_render_backend()->cubemaps.create();
-	cubemap->set_as_rgb8(width, heigth, cubemap_data);
-
-	for (auto d : cubemap_data) {
-		stbi_image_free(d);
-	}
-
-	return cubemap;
-}
-
-void PbrMaterial::update_internals() {
+void GPUPbrMaterial::update_internals() {
 	auto shader = get_shader();
 	shader->set_vec4("albedoColor", albedo);
 	shader->set_vec4("emissiveColor", emissive);
