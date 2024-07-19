@@ -14,14 +14,15 @@ const int SHADOW_RES = 1024;
 RendererBackend::RendererBackend() {
 }
 
-void RendererBackend::setup() {
+Result<void, RendererError> RendererBackend::setup() {
 	setup_gl();
 
 	// Main Window
 	Window* wnd = create_window({ 1280, 720 }, "Swarm Window");
 	wnd->make_current();
 
-	setup_glew();
+	auto rglew = setup_glew();
+	if (!rglew) return rglew;
 
 	// get version info
 	const GLubyte* renderer = glGetString(GL_RENDERER); // get renderer string
@@ -29,24 +30,30 @@ void RendererBackend::setup() {
 	printf("Renderer: %s\n", renderer);
 	printf("OpenGL version supported %s\n", version);
 
-	setup_internals();
-	setup_imgui();
+	auto rinternals = setup_internals();
+	if (!rinternals) return rinternals;
+
+	auto rimgui = setup_imgui();
+	if (!rimgui) return rimgui;
 }
 
-void RendererBackend::setup_gl() {
+Result<void, RendererError> RendererBackend::setup_gl() {
 	if (!glfwInit()) {
-		fprintf(stderr, "ERROR: could not start GLFW3\n");
-		return;
+		return Error(RendererError{ .error = "ERROR: could not start GLFW3" });
 	}
 }
 
-void RendererBackend::setup_glew() {
+Result<void, RendererError> RendererBackend::setup_glew() {
 	glewExperimental = GL_TRUE;
-	glewInit();
+	if (glewInit() != 0) {
+		return Error(RendererError{ .error = "ERROR: could not start GLEW" });
+	}
 }
 
-void RendererBackend::setup_internals() {
-	auto shadowmap_shader = App::get_asset_backend()->load_file<GPUShader>("depth");
+Result<void, RendererError> RendererBackend::setup_internals() {
+	auto rshadowmap_shader = App::get_asset_backend()->load_file<GPUShader>("depth");
+	if (!rshadowmap_shader) { return Error(RendererError{ .error = "Failed to load the depth shader." }); }
+	auto shadowmap_shader = rshadowmap_shader.value();
 	shadowmap_mat = materials.create();
 	shadowmap_mat->set_shader(shadowmap_shader);
 
@@ -59,8 +66,8 @@ void RendererBackend::setup_internals() {
 	shadowmap_textures->set_border_color(vec4(1.0, 1.0, 1.0, 1.0));
 }
 
-void RendererBackend::setup_imgui() {
-	if (imgui_installed) return;
+Result<void, RendererError> RendererBackend::setup_imgui() {
+	if (imgui_installed) return Error(RendererError{ .error = "Error: ImGui already installed." });
 
 	IMGUI_CHECKVERSION();
 	ImGui::CreateContext();
@@ -97,15 +104,15 @@ void RendererBackend::debug_backend(RenderWorld* world) {
 
 	bool active = true;
 	world->on_ui_pass.connect([this, &active]() {
-			ImGui::Begin("Render Backend", &active);
-			for (auto m : materials) {
-				if (auto material = static_cast<GPUPbrMaterial*>(m)) {
-					ImGui::ColorEdit4("Color", &material->albedo.x);
-					ImGui::SliderFloat("Metallic", &material->metallic, 0, 1);
-					ImGui::SliderFloat("Roughness", &material->roughness, 0, 1);
-				}
+		ImGui::Begin("Render Backend", &active);
+		for (auto m : materials) {
+			if (auto material = static_cast<GPUPbrMaterial*>(m)) {
+				ImGui::ColorEdit4("Color", &material->albedo.x);
+				ImGui::SliderFloat("Metallic", &material->metallic, 0, 1);
+				ImGui::SliderFloat("Roughness", &material->roughness, 0, 1);
 			}
-			ImGui::End();
+		}
+		ImGui::End();
 		});
 }
 
@@ -296,7 +303,7 @@ ivec2 Window::get_size() {
 	return size;
 }
 
-unsigned int GPUShader::compile_source(ShaderSrcType type, const char* src) {
+Result<GL_ID, ShaderError> GPUShader::compile_source(ShaderSrcType type, const char* src) {
 	unsigned int compiled = glCreateShader(to_gl_define(type));
 	glShaderSource(compiled, 1, &src, NULL);
 	glCompileShader(compiled);
@@ -306,14 +313,19 @@ unsigned int GPUShader::compile_source(ShaderSrcType type, const char* src) {
 	if (!success) {
 		char infoLog[512];
 		glGetShaderInfoLog(compiled, 512, NULL, infoLog);
-		std::cout << "ERROR::SHADER::COMPILATION_FAILED\n" << infoLog << std::endl;
+		return Error(ShaderError{ .error = format("Error: Compilation failed for shader source {}: \n%s", (int)type, infoLog) });
 	};
 	return compiled;
 }
 
-void GPUShader::compile_shader(const char* vert, const char* frag) {
-	auto vertex = compile_source(ShaderSrcType::VertexSrc, vert);
-	auto fragment = compile_source(ShaderSrcType::FragmentSrc, frag);
+Result<void, ShaderError> GPUShader::compile_shader(const char* vert, const char* frag) {
+	auto rvertex = compile_source(ShaderSrcType::VertexSrc, vert);
+	if (!rvertex) { return Error(rvertex.error()); }
+	auto vertex = rvertex.value();
+
+	auto rfragment = compile_source(ShaderSrcType::FragmentSrc, frag);
+	if (!rfragment) { return Error(rfragment.error()); }
+	auto fragment = rfragment.value();
 
 	gl_program = glCreateProgram();
 	glAttachShader(gl_program, vertex);
@@ -325,7 +337,7 @@ void GPUShader::compile_shader(const char* vert, const char* frag) {
 	if (!success) {
 		char infoLog[512];
 		glGetProgramInfoLog(gl_program, 512, NULL, infoLog);
-		std::cout << "ERROR::SHADER::PROGRAM::LINKING_FAILED:\n\t" << infoLog << std::endl;
+		return Error(ShaderError{ .error = format("ERROR: Failed linking shader:\n%s", infoLog) });
 	}
 
 	glDeleteShader(vertex);

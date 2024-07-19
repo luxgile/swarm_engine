@@ -5,8 +5,11 @@
 #include <unordered_map>
 #include "../rendering/renderer.h"
 #include <typeindex>
+#include "../core.h"
+#include "import.h"
 
 using namespace std;
+class App;
 
 class AssetId {
 	string id;
@@ -15,6 +18,8 @@ public:
 	AssetId(string id);
 	const string get_id() { return id; }
 	const size_t get_hash() { return hashed_id; }
+
+	bool operator ==(AssetId* id) const { return id->hashed_id == hashed_id; }
 };
 
 class Asset {
@@ -28,35 +33,38 @@ public:
 	AssetId get_id() { return id; }
 };
 
-class BaseFileImport {
-public:
-	virtual type_index file_type() = 0;
-	virtual void* raw_load_file(const char* path) = 0;
+class Mesh : public Asset {
+
 };
-template <typename T>
-class FileImport : public BaseFileImport {
-public:
-	type_index file_type() override { return typeid(T); }
-	virtual void* raw_load_file(const char* path) { return load_file(path); }
-	virtual T* load_file(const char* path) = 0;
+
+enum RefType {
+	Id,
+	Path,
 };
-class ShaderImport : public FileImport<GPUShader> {
+template<typename T>
+class AssetRef {
+	AssetId id;
+	string path;
+	RefType type;
 public:
-	GPUShader* load_file(const char* path) override;
-};
-class ModelImport : public FileImport<GPUModel> {
-public:
-	GPUModel* load_file(const char* path) override;
-	void process_ai_node(GPUModel* model, aiNode* node, const aiScene* scene);
-	GPUMesh* process_ai_mesh(aiMesh* mesh, const aiScene* scene);
-};
-class Texture2DImport : public FileImport<GPUTexture2D> {
-public:
-	GPUTexture2D* load_file(const char* path) override;
-};
-class CubemapTextureImport : public FileImport<GPUCubemapTexture> {
-public:
-	GPUCubemapTexture* load_file(const char* path) override;
+	AssetRef(RefType type, string asset);
+	const T* get() const {
+		switch (type) {
+		case Id:
+			return nullptr;
+		case Path:
+			return App::get_asset_backend()->load_file(path);
+		}
+	}
+
+	T* get_mut() const {
+		switch (type) {
+		case Id:
+			return nullptr;
+		case Path:
+			return App::get_asset_backend()->load_file(path);
+		}
+	}
 };
 
 class AssetBackend {
@@ -71,10 +79,9 @@ public:
 	void register_importer();
 
 	template<typename T>
-	T* load_file(const char* path);
+	Result<T*, ImportError> load_file(const char* path);
 	template<typename T>
-	T* load_file(string path) { return load_file<T>(path.c_str()); }
-
+	Result<T*, ImportError> load_file(string path) { return load_file<T>(path.c_str()); }
 };
 
 template<typename T>
@@ -85,7 +92,7 @@ inline void AssetBackend::register_importer() {
 }
 
 template<typename T>
-inline T* AssetBackend::load_file(const char* path) {
+inline Result<T*, ImportError> AssetBackend::load_file(const char* path) {
 	auto it = importers.find(typeid(T));
 	if (it == importers.end()) {
 		fprintf(stderr, "ERROR: No importer registered for file: %s\n", path);
@@ -93,5 +100,25 @@ inline T* AssetBackend::load_file(const char* path) {
 	}
 	auto importer = importers[typeid(T)];
 	string abs_path = asset_path + path;
-	return static_cast<T*>(importer->raw_load_file(abs_path.c_str()));
+	auto file = importer->raw_load_file(abs_path.c_str());
+	if (!file) {
+		return Error(file.error());
+	}
+
+	return static_cast<T*>(file.value());
 }
+
+template<typename T>
+inline AssetRef<T>::AssetRef(RefType type, string asset) {
+	this->type = type;
+	switch (type) {
+	case Id:
+		id = AssetId(asset);
+		fprintf(stderr, "ERROR: Asset references using ID are not supported yet.");
+		break;
+	case Path:
+		path = asset;
+		break;
+	}
+}
+

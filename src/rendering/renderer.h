@@ -13,6 +13,7 @@
 #include <assimp/postprocess.h>
 #include "../MemPool.h"
 #include "render_world.h"
+#include "../venum.h"
 
 typedef unsigned int GL_ID;
 typedef unsigned int uint;
@@ -70,14 +71,18 @@ enum SamplerID {
 	Skybox,
 };
 
+struct ShaderError {
+	std::string error;
+};
+
 class GPUShader {
 	GL_ID gl_program;
 
 private:
-	unsigned int compile_source(ShaderSrcType type, const char* src);
+	Result<GL_ID, ShaderError> compile_source(ShaderSrcType type, const char* src);
 
 public:
-	void compile_shader(const char* vert, const char* frag);
+	Result<void, ShaderError>  compile_shader(const char* vert, const char* frag);
 	void use_shader() const;
 	void set_sampler_id(string uniform, SamplerID id);
 	void set_sampler_id(string uniform, uint id);
@@ -300,6 +305,10 @@ private:
 };
 
 
+struct RendererError {
+	std::string error;
+};
+
 class RendererBackend {
 private:
 	GPUFrameBuffer* shadows_fbo;
@@ -329,10 +338,10 @@ public:
 
 
 private:
-	void setup_gl();
-	void setup_glew();
-	void setup_internals();
-	void setup_imgui();
+	Result<void, RendererError> setup_gl();
+	Result<void, RendererError> setup_glew();
+	Result<void, RendererError> setup_internals();
+	Result<void, RendererError> setup_imgui();
 
 	void render_shadowmaps(vector<Light*> lights, vector<GPUVisual*> visuals);
 	void render_skybox(RenderWorld* world);
@@ -344,7 +353,7 @@ private:
 
 public:
 	RendererBackend();
-	void setup();
+	Result<void, RendererError> setup();
 	bool is_imgui_installed() { return imgui_installed; }
 
 	Window* get_main_window() { return windows[0]; }

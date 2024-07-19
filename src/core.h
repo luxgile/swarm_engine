@@ -6,6 +6,8 @@
 #include "glm/gtx/quaternion.hpp"
 #include "assets/assets.h"
 
+class AssetBackend;
+
 class App {
 private:
 	unsigned int target_fps;
@@ -45,3 +47,4 @@ class Transform {
 	public:
 	mat4 get_matrix();
 };
+

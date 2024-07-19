@@ -7,21 +7,23 @@ App* App::singleton = nullptr;
 
 App::App() {
 	if (singleton != nullptr) {
-		std::cout << "ERROR::MULTIPLE_APPLICATIONS\n" << std::endl;
+		std::cout << "Error: Multiple applications detected, make sure only one has been constructed.\n" << std::endl;
 		return;
 	}
 
 	singleton = this;
+	target_fps = 0;
 
 	asset_backend = std::make_unique<AssetBackend>();
 	asset_backend.get()->set_asset_folder(string("E:/dev/Swarm/res/"));
-	asset_backend.get()->register_importer<ShaderImport>();
-	asset_backend.get()->register_importer<ModelImport>();
-	asset_backend.get()->register_importer<CubemapTextureImport>();
-	asset_backend.get()->register_importer<Texture2DImport>();
+	asset_backend.get()->register_importer<GPUShaderImport>();
+	asset_backend.get()->register_importer<GPUModelImport>();
+	asset_backend.get()->register_importer<GPUCubemapTextureImport>();
+	asset_backend.get()->register_importer<GPUTexture2DImport>();
 
 	render_backend = std::make_unique<RendererBackend>();
-	render_backend.get()->setup();
+	auto rrender = render_backend.get()->setup();
+	if(!rrender) printf("Error: Backend failed to initialize:\n%s", rrender.error().error.c_str());
 }
 
 void App::app_loop() {
@@ -34,7 +36,7 @@ void App::app_loop() {
 	auto world = render->worlds.create();
 	world->vp = viewport;
 
-	auto shader = assets->load_file<GPUShader>("pbr");
+	auto shader = *assets->load_file<GPUShader>("pbr");
 	shader->set_sampler_id("albedoMap", SamplerID::Albedo);
 	shader->set_sampler_id("mraMap", SamplerID::MRA);
 	shader->set_sampler_id("normalMap", SamplerID::Normal);
@@ -42,16 +44,16 @@ void App::app_loop() {
 	shader->set_sampler_id("shadowMaps", SamplerID::Shadows);
 	shader->set_sampler_id("skyboxMap", SamplerID::Skybox);
 
-	auto monkey_model = assets->load_file<GPUModel>("monkey.glb");
-	auto cube_model = assets->load_file<GPUModel>("primitives/cube.glb");
+	auto monkey_model = *assets->load_file<GPUModel>("monkey.glb");
+	auto cube_model = *assets->load_file<GPUModel>("primitives/cube.glb");
 
-	auto uv_texture = assets->load_file<GPUTexture2D>("uv_texture.png");
+	auto uv_texture = *assets->load_file<GPUTexture2D>("uv_texture.png");
 
 	auto skybox = render->visuals.create();
-	auto skybox_shader = assets->load_file<GPUShader>("skybox/skybox");
+	auto skybox_shader = *assets->load_file<GPUShader>("skybox/skybox");
 	auto skybox_material = render->materials.create();
 	skybox_material->set_shader(skybox_shader);
-	auto skybox_cube = assets->load_file<GPUCubemapTexture>("skybox/skybox#.png");
+	auto skybox_cube = *assets->load_file<GPUCubemapTexture>("skybox/skybox#.png");
 	skybox_cube->set_filter(TextureFilter::Linear);
 	skybox_cube->set_wrap(TextureWrap::ClampEdge);
 	skybox_material->set_texture(SamplerID::Skybox, skybox_cube);
@@ -120,7 +122,7 @@ void App::app_loop() {
 
 	world->env->clear_color = vec3(0.2, 0.1, 0.3);
 
-	glfwSwapInterval(60);
+	if (target_fps != 0) glfwSwapInterval(target_fps);
 	glEnable(GL_MULTISAMPLE);
 	glEnable(GL_CULL_FACE);
 	glCullFace(GL_BACK);

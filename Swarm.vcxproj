@@ -107,6 +107,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -131,6 +132,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="src\assets\assets.cpp" />
+    <ClCompile Include="src\assets\import.cpp" />
     <ClCompile Include="src\core.cpp" />
     <ClCompile Include="src\imgui\imgui_impl_glfw.cpp" />
     <ClCompile Include="src\imgui\imgui_impl_opengl3.cpp" />
@@ -139,9 +141,11 @@
     <ClCompile Include="src\Swarm.cpp" />
     <ClCompile Include="src\utils.cpp" />
     <ClCompile Include="src\utils.h" />
+    <ClCompile Include="src\venum.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\assets\assets.h" />
+    <ClInclude Include="src\assets\import.h" />
     <ClInclude Include="src\core.h" />
     <ClInclude Include="src\imgui\imgui_impl_glfw.h" />
     <ClInclude Include="src\imgui\imgui_impl_opengl3.h" />
@@ -149,6 +153,7 @@
     <ClInclude Include="src\MemPool.h" />
     <ClInclude Include="src\rendering\renderer.h" />
     <ClInclude Include="src\rendering\render_world.h" />
+    <ClInclude Include="src\venum.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include=".gitignore" />
