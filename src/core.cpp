@@ -13,6 +13,7 @@ App::App() {
 
 	singleton = this;
 	target_fps = 0;
+	main_world = std::make_unique<World>();
 
 	asset_backend = std::make_unique<AssetBackend>();
 	asset_backend.get()->set_asset_folder(string("E:/dev/Swarm/res/"));
@@ -113,7 +114,6 @@ void App::app_loop() {
 	sun2->intensity = 1.0f;
 	world->lights.push_back(sun2);
 
-
 	auto proj = glm::perspectiveFov(90.0f, 1280.0f, 720.0f, 0.1f, 100.0f);
 	auto camera = render->cameras.create();
 	camera->set_proj(70.0f, vec2(1280.0f, 720.0f), vec2(0.1f, 100.0f));
@@ -146,7 +146,7 @@ void App::app_loop() {
 		float dt = start_frame_time - last_frame_time;
 
 		// Logic here
-		// Most likely flec
+		main_world.get()->process_frame(0);
 		float x = glm::cos(app_time / 5.0f) * 10;
 		float z = -glm::sin(app_time / 5.0f) * 10;
 		camera->set_view(vec3(x, 2.0f, z), vec3(0.0f, 0.0f, 0.0f), vec3(0.0f, 1.0f, 0.0f));
@@ -166,15 +166,15 @@ void App::app_loop() {
 	}
 }
 
-mat4 Transform::get_matrix() {
-
-	if (!is_cached) {
-		cached_matrix = glm::identity<mat4>();
-		cached_matrix = glm::scale(cached_matrix, scale);
-		cached_matrix *= glm::mat4_cast(rotation);
-		cached_matrix = glm::translate(cached_matrix, position);
-		is_cached = true;
-	}
-
-	return cached_matrix;
-}
+//mat4 Transform::get_matrix() {
+//
+//	if (!is_cached) {
+//		cached_matrix = glm::identity<mat4>();
+//		cached_matrix = glm::scale(cached_matrix, scale);
+//		cached_matrix *= glm::mat4_cast(rotation);
+//		cached_matrix = glm::translate(cached_matrix, position);
+//		is_cached = true;
+//	}
+//
+//	return cached_matrix;
+//}

@@ -33,10 +33,6 @@ public:
 	AssetId get_id() { return id; }
 };
 
-class Mesh : public Asset {
-
-};
-
 enum RefType {
 	Id,
 	Path,

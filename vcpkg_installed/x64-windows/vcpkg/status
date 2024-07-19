@@ -463,7 +463,7 @@ Architecture: x64-windows
 Multi-Arch: same
 Abi: 807dea7f41ea7e51c61f81d14309455c3140c097d9743689e9b941e4dd3fb648
 Description: Boost hana module
-Status: install ok installed
+Status: purge ok not-installed
 
 Package: boost-yap
 Version: 1.85.0
@@ -473,7 +473,7 @@ Architecture: x64-windows
 Multi-Arch: same
 Abi: 972e33e900e7d0e580fb716f017fe28d145d3c05f61ffb75f972f30a567e1f20
 Description: Boost yap module
-Status: install ok installed
+Status: purge ok not-installed
 
 Package: boost-integer
 Version: 1.85.0
@@ -503,7 +503,7 @@ Architecture: x64-windows
 Multi-Arch: same
 Abi: 8809505626f0991ea1006617c5db64ee6efde7b5462674d1715686e26424c2dd
 Description: Boost unordered module
-Status: install ok installed
+Status: purge ok not-installed
 
 Package: boost-winapi
 Version: 1.85.0
@@ -513,7 +513,7 @@ Architecture: x64-windows
 Multi-Arch: same
 Abi: c43a991b1c6d9658de87f28270ef3ded57ff5ea0f4d826f1ead9255f8ce5ee1f
 Description: Boost winapi module
-Status: install ok installed
+Status: purge ok not-installed
 
 Package: boost-variant2
 Version: 1.85.0
@@ -523,7 +523,7 @@ Architecture: x64-windows
 Multi-Arch: same
 Abi: ddb03db0c1e79980e54ed3d95ff51ef9795097eca56304ecf3759021e14fe08d
 Description: Boost variant2 module
-Status: install ok installed
+Status: purge ok not-installed
 
 Package: boost-system
 Version: 1.85.0
@@ -533,7 +533,7 @@ Architecture: x64-windows
 Multi-Arch: same
 Abi: aeea2283fa68880e8f7bafa67d214935aeeea63b616ca737f2b3e07b4dd2c95f
 Description: Boost system module
-Status: install ok installed
+Status: purge ok not-installed
 
 Package: boost-move
 Version: 1.85.0
@@ -573,7 +573,7 @@ Architecture: x64-windows
 Multi-Arch: same
 Abi: 0d53b8681d0301ec73a9d7db8066f6e0c737834df131957bd693ed046a4dd944
 Description: Boost exception module
-Status: install ok installed
+Status: purge ok not-installed
 
 Package: boost-concept-check
 Version: 1.85.0
@@ -603,7 +603,7 @@ Architecture: x64-windows
 Multi-Arch: same
 Abi: 0aa97ed91332518f1da7449d98806c185a3d1abc183c4349ad2e5d396daddd5d
 Description: Boost tokenizer module
-Status: install ok installed
+Status: purge ok not-installed
 
 Package: boost-regex
 Version: 1.85.0
@@ -613,7 +613,7 @@ Architecture: x64-windows
 Multi-Arch: same
 Abi: 7eda63f91686a0dcbba66fd827b85fcef57e53114e20d0d753c2c4131ece8b19
 Description: Boost regex module
-Status: install ok installed
+Status: purge ok not-installed
 
 Package: boost-conversion
 Version: 1.85.0
@@ -623,7 +623,7 @@ Architecture: x64-windows
 Multi-Arch: same
 Abi: efe84ba26a25b11f49548f4c1c0786efc777b2ed3ba69dd78934c60d5e1c8ebe
 Description: Boost conversion module
-Status: install ok installed
+Status: purge ok not-installed
 
 Package: boost-array
 Version: 1.85.0
@@ -633,7 +633,7 @@ Architecture: x64-windows
 Multi-Arch: same
 Abi: d43c5e86deb95b53b923b983459691b45ccb762c1b27571e38ba84a05b6024c7
 Description: Boost array module
-Status: install ok installed
+Status: purge ok not-installed
 
 Package: boost-range
 Version: 1.85.0
@@ -643,7 +643,7 @@ Architecture: x64-windows
 Multi-Arch: same
 Abi: 617e263851be5c02fd029915ff23be2e99e38a7710c1ccb8184aaa820643c960
 Description: Boost range module
-Status: install ok installed
+Status: purge ok not-installed
 
 Package: boost-numeric-conversion
 Version: 1.85.0
@@ -653,7 +653,7 @@ Architecture: x64-windows
 Multi-Arch: same
 Abi: 645d502de3ee37d0ff3c47ba557c71c4371220914909601ba9992b7181b58e57
 Description: Boost numeric_conversion module
-Status: install ok installed
+Status: purge ok not-installed
 
 Package: boost-intrusive
 Version: 1.85.0
@@ -663,7 +663,7 @@ Architecture: x64-windows
 Multi-Arch: same
 Abi: e1d6ca8f6ef6ce2f2b56e14f76ff2687a5f133295b78dcceb0fd3bbb49dd0618
 Description: Boost intrusive module
-Status: install ok installed
+Status: purge ok not-installed
 
 Package: boost-container
 Version: 1.85.0
@@ -673,7 +673,7 @@ Architecture: x64-windows
 Multi-Arch: same
 Abi: 15a6245df1f096f6981e77dc58e133b3705f5d16beb624f16acc1ff6f3779ea1
 Description: Boost container module
-Status: install ok installed
+Status: purge ok not-installed
 
 Package: boost-lexical-cast
 Version: 1.85.0
@@ -683,7 +683,7 @@ Architecture: x64-windows
 Multi-Arch: same
 Abi: 5e723cfe20b6859f582da3974b5f5a86553557cb2a510b736a3025ff7630b1da
 Description: Boost lexical_cast module
-Status: install ok installed
+Status: purge ok not-installed
 
 Package: boost-algorithm
 Version: 1.85.0
@@ -693,7 +693,7 @@ Architecture: x64-windows
 Multi-Arch: same
 Abi: 93a7e604b49427da18f4f1d8d4a2474f8a85fe8b39468aba1d1d20f6897e1ad9
 Description: Boost algorithm module
-Status: install ok installed
+Status: purge ok not-installed
 
 Package: boost-date-time
 Version: 1.85.0
@@ -703,7 +703,7 @@ Architecture: x64-windows
 Multi-Arch: same
 Abi: 31a2ec2921f74d62bdb27b057e116f7caf57b1f4036646e81e4d6cb2d4b117fa
 Description: Boost date_time module
-Status: install ok installed
+Status: purge ok not-installed
 
 Package: boost-ratio
 Version: 1.85.0
@@ -713,7 +713,7 @@ Architecture: x64-windows
 Multi-Arch: same
 Abi: 3f5afa8ac5227ca76d9adf70e06de87f035c1e27cf1521cf812c5acb25ee1d20
 Description: Boost ratio module
-Status: install ok installed
+Status: purge ok not-installed
 
 Package: boost-chrono
 Version: 1.85.0
@@ -723,7 +723,7 @@ Architecture: x64-windows
 Multi-Arch: same
 Abi: edf46ec9570bdccb35c674c2465284e7996c8b37f8ff8dbcf9100df70930183e
 Description: Boost chrono module
-Status: install ok installed
+Status: purge ok not-installed
 
 Package: boost-align
 Version: 1.85.0
@@ -733,7 +733,7 @@ Architecture: x64-windows
 Multi-Arch: same
 Abi: f0229972852846cdeba84eabf2f828a988f7d5ae70e0c347d08915257c6c24fd
 Description: Boost align module
-Status: install ok installed
+Status: purge ok not-installed
 
 Package: boost-atomic
 Version: 1.85.0
@@ -743,7 +743,7 @@ Architecture: x64-windows
 Multi-Arch: same
 Abi: 5a75525c71c1d19d6912a6ff270106596210575521b1bd84946b896a158c6dce
 Description: Boost atomic module
-Status: install ok installed
+Status: purge ok not-installed
 
 Package: boost-thread
 Version: 1.85.0
@@ -753,7 +753,7 @@ Architecture: x64-windows
 Multi-Arch: same
 Abi: 8485b915a9a98adbbdeaaeb3e7f2b59bad2e7267536fe9e8e00eedb54e89c208
 Description: Boost thread module
-Status: install ok installed
+Status: purge ok not-installed
 
 Package: boost-proto
 Version: 1.85.0
@@ -763,7 +763,7 @@ Architecture: x64-windows
 Multi-Arch: same
 Abi: d07da7b9c8c442152d387d6040d44b22f6de606e8fa0893c6d87ba869cbe1733
 Description: Boost proto module
-Status: install ok installed
+Status: purge ok not-installed
 
 Package: boost-pool
 Version: 1.85.0
@@ -773,7 +773,7 @@ Architecture: x64-windows
 Multi-Arch: same
 Abi: c4511ae369dbe3507106b847bcbe34b36872805060a3946d1ef4ac7e465d5b3f
 Description: Boost pool module
-Status: install ok installed
+Status: purge ok not-installed
 
 Package: boost-phoenix
 Version: 1.85.0
@@ -783,7 +783,7 @@ Architecture: x64-windows
 Multi-Arch: same
 Abi: 73d64dac33e0e55d4f4820b6a2f68dbaa2644273354798e1720c2e32d34d3ba2
 Description: Boost phoenix module
-Status: install ok installed
+Status: purge ok not-installed
 
 Package: boost-endian
 Version: 1.85.0
@@ -793,7 +793,7 @@ Architecture: x64-windows
 Multi-Arch: same
 Abi: bff1ab6fcf88faaa3fbf3aeab300329d0b727162adaec373ad5716e3f64440f2
 Description: Boost endian module
-Status: install ok installed
+Status: purge ok not-installed
 
 Package: boost-spirit
 Version: 1.85.0
@@ -803,7 +803,7 @@ Architecture: x64-windows
 Multi-Arch: same
 Abi: 43f64e1ae8856a998a4f373185ef886f0bc0a9b919d841ad14b1554edf1564a6
 Description: Boost spirit module
-Status: install ok installed
+Status: purge ok not-installed
 
 Package: boost-xpressive
 Version: 1.85.0
@@ -813,7 +813,7 @@ Architecture: x64-windows
 Multi-Arch: same
 Abi: 2d42c8036d09e3bc5030e7ea786cae2d38645723917ea3fb967533c664f03a3a
 Description: Boost xpressive module
-Status: install ok installed
+Status: purge ok not-installed
 
 Package: boost-serialization
 Version: 1.85.0
@@ -823,7 +823,7 @@ Architecture: x64-windows
 Multi-Arch: same
 Abi: 5b0f85c5a6370e5979d239bd8a28e5a8e150cd265fe06c0748fd38852a9c9af8
 Description: Boost serialization module
-Status: install ok installed
+Status: purge ok not-installed
 
 Package: boost-multi-index
 Version: 1.85.0
@@ -833,7 +833,7 @@ Architecture: x64-windows
 Multi-Arch: same
 Abi: 8afdcec737b68a61af1eaeaf66d53b9d5ffc888ad0438af3b6b10d90660e24bb
 Description: Boost multi_index module
-Status: install ok installed
+Status: purge ok not-installed
 
 Package: boost-format
 Version: 1.85.0
@@ -843,7 +843,7 @@ Architecture: x64-windows
 Multi-Arch: same
 Abi: 227d62b34c2ce6dcb14027ccd0ad2e2f035d05dc966bc78a7afd0124db84cde3
 Description: Boost format module
-Status: install ok installed
+Status: purge ok not-installed
 
 Package: boost-scope
 Version: 1.85.0
@@ -853,7 +853,7 @@ Architecture: x64-windows
 Multi-Arch: same
 Abi: 4408f1023b1177bc10c5bcad8274445c18d025d754fe8e4d56376ea9c4cf6eca
 Description: Boost scope module
-Status: install ok installed
+Status: purge ok not-installed
 
 Package: boost-filesystem
 Version: 1.85.0
@@ -863,7 +863,7 @@ Architecture: x64-windows
 Multi-Arch: same
 Abi: da01561a31f9736164949a8adf23a13e6e268f71d54763fc9b3e2f865a4566cc
 Description: Boost filesystem module
-Status: install ok installed
+Status: purge ok not-installed
 
 Package: boost-wave
 Version: 1.85.0
@@ -873,7 +873,7 @@ Architecture: x64-windows
 Multi-Arch: same
 Abi: ab7764fd01c428915d9e619d595e57642f4c3944f5360bd3fff41582f60e3d35
 Description: Boost wave module
-Status: install ok installed
+Status: purge ok not-installed
 
 Package: boost-vmd
 Version: 1.85.0
@@ -883,7 +883,7 @@ Architecture: x64-windows
 Multi-Arch: same
 Abi: 5eac4d6560564b724ba96e1bb306e509654be7c7d60185e661a955cbac90940f
 Description: Boost vmd module
-Status: install ok installed
+Status: purge ok not-installed
 
 Package: boost-tti
 Version: 1.85.0
@@ -893,7 +893,7 @@ Architecture: x64-windows
 Multi-Arch: same
 Abi: b989d533289aa158141e72a6e1ea9bf8813e151acbb2fcd5bd3526ef44dd201f
 Description: Boost tti module
-Status: install ok installed
+Status: purge ok not-installed
 
 Package: boost-dynamic-bitset
 Version: 1.85.0
@@ -903,7 +903,7 @@ Architecture: x64-windows
 Multi-Arch: same
 Abi: d26e94f296b7542e29c7e9cfa38b4b3541e3d98129294e521cc840cfca25f873
 Description: Boost dynamic_bitset module
-Status: install ok installed
+Status: purge ok not-installed
 
 Package: boost-random
 Version: 1.85.0
@@ -913,7 +913,7 @@ Architecture: x64-windows
 Multi-Arch: same
 Abi: 9bcd66012ed4f03bdc45e2e8d4dbc5a79dc7b856a81a4981245315ace1e121c3
 Description: Boost random module
-Status: install ok installed
+Status: purge ok not-installed
 
 Package: boost-uuid
 Version: 1.85.0
@@ -923,7 +923,7 @@ Architecture: x64-windows
 Multi-Arch: same
 Abi: 20f7aef5712b7ae2394a6fd297574a15de1bb8887198d1ca56e630c168ba3c80
 Description: Boost uuid module
-Status: install ok installed
+Status: purge ok not-installed
 
 Package: boost-url
 Version: 1.85.0
@@ -933,7 +933,7 @@ Architecture: x64-windows
 Multi-Arch: same
 Abi: d1e15dc47891bae3d98d094bdb337cc0a4d98c4f091175925ad8c8498b7c5c32
 Description: Boost url module
-Status: install ok installed
+Status: purge ok not-installed
 
 Package: boost-math
 Version: 1.85.0
@@ -943,7 +943,7 @@ Architecture: x64-windows
 Multi-Arch: same
 Abi: 8d9fea8d005def466f39f43cdf3bb3a7f2fb57661858ca3a911611b8979d5552
 Description: Boost math module
-Status: install ok installed
+Status: purge ok not-installed
 
 Package: boost-lambda
 Version: 1.85.0
@@ -953,7 +953,7 @@ Architecture: x64-windows
 Multi-Arch: same
 Abi: 6260bfdc64a45893a7b8b455747926d8ed8b3aadcf855334266dd90be9375855
 Description: Boost lambda module
-Status: install ok installed
+Status: purge ok not-installed
 
 Package: boost-units
 Version: 1.85.0
@@ -963,7 +963,7 @@ Architecture: x64-windows
 Multi-Arch: same
 Abi: 6ebc97d54582ecb428215786d27526a63bc84874e75859e8e10dc2a496f0c987
 Description: Boost units module
-Status: install ok installed
+Status: purge ok not-installed
 
 Package: boost-logic
 Version: 1.85.0
@@ -973,7 +973,7 @@ Architecture: x64-windows
 Multi-Arch: same
 Abi: c0db8e4cb1295fc76018204f7ec29460972b41b3b3d75c720f7bc0b5d6a311a2
 Description: Boost logic module
-Status: install ok installed
+Status: purge ok not-installed
 
 Package: boost-interval
 Version: 1.85.0
@@ -983,7 +983,7 @@ Architecture: x64-windows
 Multi-Arch: same
 Abi: b019d6c3208b9c72f88322c3a5f7ee7ffc83fcecc5a1952ef86bf06887d1caea
 Description: Boost interval module
-Status: install ok installed
+Status: purge ok not-installed
 
 Package: boost-any
 Version: 1.85.0
@@ -993,7 +993,7 @@ Architecture: x64-windows
 Multi-Arch: same
 Abi: 1ce6220d9e7696dac51a4d4e3358d830388e883cca17f4f1be8f01f890b3b273
 Description: Boost any module
-Status: install ok installed
+Status: purge ok not-installed
 
 Package: boost-property-tree
 Version: 1.85.0
@@ -1003,7 +1003,7 @@ Architecture: x64-windows
 Multi-Arch: same
 Abi: e9d7bc50feebffc56ff85c4eeb96664ec5aa6795519e7fe045ee318f0b82767c
 Description: Boost property_tree module
-Status: install ok installed
+Status: purge ok not-installed
 
 Package: boost-compute
 Version: 1.85.0
@@ -1013,7 +1013,7 @@ Architecture: x64-windows
 Multi-Arch: same
 Abi: d18d3ba6aa73c65e20e9d0d4845faf6227bdbfbe7c49d3ca0a08f570f3afb196
 Description: Boost compute module
-Status: install ok installed
+Status: purge ok not-installed
 
 Package: boost-ublas
 Version: 1.85.0
@@ -1023,7 +1023,7 @@ Architecture: x64-windows
 Multi-Arch: same
 Abi: ee4c2e620a37683b0ad27bf052d3d0e6ee4435a39fa70096297ddf95df888163
 Description: Boost ublas module
-Status: install ok installed
+Status: purge ok not-installed
 
 Package: boost-type-erasure
 Version: 1.85.0
@@ -1033,7 +1033,7 @@ Architecture: x64-windows
 Multi-Arch: same
 Abi: cc2c81b5d23e35e1a9ced4d29e2253c292572d9390c31984313e5ba79412c83f
 Description: Boost type_erasure module
-Status: install ok installed
+Status: purge ok not-installed
 
 Package: boost-timer
 Version: 1.85.0
@@ -1043,7 +1043,7 @@ Architecture: x64-windows
 Multi-Arch: same
 Abi: a2a12bde987b7ce2c0700963333586c26acb0b4f68e6ef40ca43344f9b8b3461
 Description: Boost timer module
-Status: install ok installed
+Status: purge ok not-installed
 
 Package: boost-test
 Version: 1.85.0
@@ -1053,7 +1053,7 @@ Architecture: x64-windows
 Multi-Arch: same
 Abi: 887b593a95039001878bb0c674fba8867b675558e8baf053d963694a62fbb236
 Description: Boost test module
-Status: install ok installed
+Status: purge ok not-installed
 
 Package: boost-stl-interfaces
 Version: 1.85.0
@@ -1063,7 +1063,7 @@ Architecture: x64-windows
 Multi-Arch: same
 Abi: e43b5d14263673d32e7de32b707df23ce2161ab0d485e2e5510e747cd5700ff7
 Description: Boost stl_interfaces module
-Status: install ok installed
+Status: purge ok not-installed
 
 Package: boost-static-string
 Version: 1.85.0
@@ -1073,7 +1073,7 @@ Architecture: x64-windows
 Multi-Arch: same
 Abi: 24830df4fdef859778e8adf069c7e64546d38303f7f3849b7a3dfa3d53f02f46
 Description: Boost static_string module
-Status: install ok installed
+Status: purge ok not-installed
 
 Package: boost-statechart
 Version: 1.85.0
@@ -1083,7 +1083,7 @@ Architecture: x64-windows
 Multi-Arch: same
 Abi: c33515fb8eb83c0d74be86240e88dacfe49d1f3cbbbb7cb377e49f7ab6128ce1
 Description: Boost statechart module
-Status: install ok installed
+Status: purge ok not-installed
 
 Package: boost-stacktrace
 Version: 1.85.0
@@ -1093,7 +1093,7 @@ Architecture: x64-windows
 Multi-Arch: same
 Abi: 30a7e6c13fcc95c5e6ed95d5d0f827c45c0c8320be04ba32324beaf8eccd0fe3
 Description: Boost stacktrace module
-Status: install ok installed
+Status: purge ok not-installed
 
 Package: boost-sort
 Version: 1.85.0
@@ -1103,7 +1103,7 @@ Architecture: x64-windows
 Multi-Arch: same
 Abi: 6d6cab0b4df1d6adca45df78e022cc9461ce4951b8dd3633beb34dc12bdf5555
 Description: Boost sort module
-Status: install ok installed
+Status: purge ok not-installed
 
 Package: boost-parameter
 Version: 1.85.0
@@ -1133,7 +1133,7 @@ Architecture: x64-windows
 Multi-Arch: same
 Abi: 709d480307b0ce2973ca28f562003339f27deadd74bfe0cc5612f862758913f4
 Description: Boost scope_exit module
-Status: install ok installed
+Status: purge ok not-installed
 
 Package: boost-safe-numerics
 Version: 1.85.0
@@ -1143,7 +1143,7 @@ Architecture: x64-windows
 Multi-Arch: same
 Abi: 09c1b22bdaf85e59bc82d852047e0100b447170022ec2a4da6b0f954a3a296b2
 Description: Boost safe_numerics module
-Status: install ok installed
+Status: purge ok not-installed
 
 Package: boost-context
 Version: 1.85.0
@@ -1153,7 +1153,7 @@ Architecture: x64-windows
 Multi-Arch: same
 Abi: d6682e56e09630f60d0a17d91b191ad23714e6b074cba973e65fac4d756aa9f3
 Description: Boost context module
-Status: install ok installed
+Status: purge ok not-installed
 
 Package: boost-coroutine
 Version: 1.85.0
@@ -1163,7 +1163,7 @@ Architecture: x64-windows
 Multi-Arch: same
 Abi: 39c035f7f124ecf15b4044cdf1ef465ebddb00a15935f136ff829237310a2ab5
 Description: Boost coroutine module
-Status: install ok installed
+Status: purge ok not-installed
 
 Package: boost-asio
 Version: 1.85.0
@@ -1173,7 +1173,7 @@ Architecture: x64-windows
 Multi-Arch: same
 Abi: d457fee81aadfa67a234420fe69c4f7f61fc99703d5c40a9491dd9dc4db8b84e
 Description: Boost asio module
-Status: install ok installed
+Status: purge ok not-installed
 
 Package: boost-redis
 Version: 1.85.0
@@ -1183,7 +1183,7 @@ Architecture: x64-windows
 Multi-Arch: same
 Abi: 4f910fd81297a8b2bcbb74e5c757ceef8a88dd7f553ab0da3144b2fe057355f4
 Description: Boost redis module
-Status: install ok installed
+Status: purge ok not-installed
 
 Package: boost-rational
 Version: 1.85.0
@@ -1193,7 +1193,7 @@ Architecture: x64-windows
 Multi-Arch: same
 Abi: c3e66e20b9278eba7e5d7b71963df4b3bbed24706e145463db2b08a70913928e
 Description: Boost rational module
-Status: install ok installed
+Status: purge ok not-installed
 
 Package: boost-qvm
 Version: 1.85.0
@@ -1203,7 +1203,7 @@ Architecture: x64-windows
 Multi-Arch: same
 Abi: b89fded815d6f1f170905d21ff1a167e3dd6b0e57231b9c3a1e4e3309504024f
 Description: Boost qvm module
-Status: install ok installed
+Status: purge ok not-installed
 
 Package: vcpkg-tool-meson
 Version: 1.3.2
@@ -1212,7 +1212,7 @@ Architecture: x64-windows
 Multi-Arch: same
 Abi: 6b75c1d1948a8740f76941c8187ab0327be461e6d677dfdbb3750b94fd2b29a5
 Description: Meson build system
-Status: install ok installed
+Status: purge ok not-installed
 
 Package: pkgconf
 Version: 2.2.0
@@ -1221,7 +1221,7 @@ Architecture: x64-windows
 Multi-Arch: same
 Abi: 5fe2985de1995eee5eee7772f52b1b4e08e0376446d6e069578187c2466dbe1e
 Description: pkgconf is a program which helps to configure compiler and linker flags for development libraries. It is similar to pkg-config from freedesktop.org.
-Status: install ok installed
+Status: purge ok not-installed
 
 Package: vcpkg-pkgconfig-get-modules
 Version: 2024-04-03
@@ -1229,7 +1229,7 @@ Depends: pkgconf
 Architecture: x64-windows
 Multi-Arch: same
 Abi: e3172c7ce8a9a1d4ff1f3c20097dcf2f87f792e05ddfba800717f933e434a2a9
-Status: install ok installed
+Status: purge ok not-installed
 
 Package: vcpkg-msbuild
 Version: 2023-08-08
@@ -1237,14 +1237,14 @@ Depends: vcpkg-cmake-get-vars, vcpkg-pkgconfig-get-modules
 Architecture: x64-windows
 Multi-Arch: same
 Abi: c2efd870d8ee7c4023273145af810d98f88ac37f948cc8c1889177ccdc78b4c2
-Status: install ok installed
+Status: purge ok not-installed
 
 Package: vcpkg-get-python
 Version: 2024-06-08
 Architecture: x64-windows
 Multi-Arch: same
 Abi: 35be11d2548f5bdbe6e9fc17551716d579feb96ca57b5abb22d95828082b7290
-Status: install ok installed
+Status: purge ok not-installed
 
 Package: sqlite3
 Version: 3.46.0
@@ -1255,12 +1255,12 @@ Multi-Arch: same
 Abi: ca921cdfd256057f86e69f9b739324c95b09947119b7b74214e356d51fce1f42
 Description: SQLite is a software library that implements a self-contained, serverless, zero-configuration, transactional SQL database engine.
 Default-Features: json1
-Status: install ok installed
+Status: purge ok not-installed
 
 Package: sqlite3
 Feature: json1
 Architecture: x64-windows
 Multi-Arch: same
 Description: Enable JSON functionality for sqlite3
-Status: install ok installed
+Status: purge ok not-installed
 

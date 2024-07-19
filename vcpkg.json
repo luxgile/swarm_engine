@@ -1,11 +1,12 @@
 {
   "dependencies": [
     "assimp",
+    "boost-signals2",
     "glew",
     "glfw3",
     "glm",
     "imgui",
     "stb",
-    "boost-signals2"
+    "flecs"
   ]
 }
