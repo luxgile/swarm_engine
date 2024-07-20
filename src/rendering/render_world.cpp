@@ -5,8 +5,8 @@ RenderWorld::RenderWorld() {
 	env = App::get_render_backend()->enviroments.create();
 }
 
-Camera* RenderWorld::get_active_camera() {
-	Camera* active = nullptr;
+Option<Camera*> RenderWorld::get_active_camera() {
+	Option<Camera*> active = None;
 	int min_priority = 999999;
 	for (auto c : cameras) {
 		if (c->priority < min_priority) {
@@ -14,7 +14,13 @@ Camera* RenderWorld::get_active_camera() {
 			active = c;
 		}
 	}
+	if (!active) return None;
 	return active;
+}
+
+bool RenderWorld::is_ready() const {
+	//return vp != nullptr && env != nullptr && cameras.size() > 0;
+	return true;
 }
 
 Viewport::Viewport() {

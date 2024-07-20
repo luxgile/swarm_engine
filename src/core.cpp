@@ -2,6 +2,8 @@
 #include <iostream>
 #include <glm/gtc/matrix_transform.hpp>
 #include "assets/assets.h"
+#include "../src_editor/editor_module.h"
+#include "rendering/render_plugin.h"
 
 App* App::singleton = nullptr;
 
@@ -12,8 +14,7 @@ App::App() {
 	}
 
 	singleton = this;
-	target_fps = 0;
-	main_world = std::make_unique<World>();
+	target_fps = 60;
 
 	asset_backend = std::make_unique<AssetBackend>();
 	asset_backend.get()->set_asset_folder(string("E:/dev/Swarm/res/"));
@@ -24,17 +25,30 @@ App::App() {
 
 	render_backend = std::make_unique<RendererBackend>();
 	auto rrender = render_backend.get()->setup();
-	if(!rrender) printf("Error: Backend failed to initialize:\n%s", rrender.error().error.c_str());
+	if (!rrender) printf("Error: Backend failed to initialize:\n%s", rrender.error().error.c_str());
+
+	// Create the obligatory world.
+	auto main_world = create_world();
+	main_world->add_plugin<RenderPlugin>();
+
+	app_started = true;
+}
+
+World* App::create_world() {
+	auto world = new World();
+	singleton->worlds.push_back(world);
+	return world;
 }
 
 void App::app_loop() {
+	App::add_module<EditorModule>();
+	
 	auto assets = App::get_asset_backend();
 
 	auto render = get_render_backend();
-	auto window = render->get_main_window();
 	auto viewport = render->viewports.create();
-	window->set_viewport(viewport);
-	auto world = render->worlds.create();
+	viewport->set_size({1280, 720});
+	auto world = get_main_world()->get_ecs()->get<CRenderWorld>()->world;
 	world->vp = viewport;
 
 	auto shader = *assets->load_file<GPUShader>("pbr");
@@ -60,7 +74,7 @@ void App::app_loop() {
 	skybox_material->set_texture(SamplerID::Skybox, skybox_cube);
 	skybox->set_material(skybox_material);
 	skybox->set_model(cube_model);
-	world->env->skybox = skybox;
+	world->env.value()->skybox = skybox;
 
 	auto material = render->materials.create<GPUPbrMaterial>();
 	material->set_shader(shader);
@@ -120,7 +134,7 @@ void App::app_loop() {
 	camera->set_view(vec3(0, 3, -10), vec3(0, 2, 0), vec3(0, 1, 0));
 	world->cameras.push_back(camera);
 
-	world->env->clear_color = vec3(0.2, 0.1, 0.3);
+	world->env.value()->clear_color = vec3(0.2, 0.1, 0.3);
 
 	if (target_fps != 0) glfwSwapInterval(target_fps);
 	glEnable(GL_MULTISAMPLE);
@@ -146,7 +160,8 @@ void App::app_loop() {
 		float dt = start_frame_time - last_frame_time;
 
 		// Logic here
-		main_world.get()->process_frame(0);
+		for(auto world : worlds) world->process_frame(0);
+
 		float x = glm::cos(app_time / 5.0f) * 10;
 		float z = -glm::sin(app_time / 5.0f) * 10;
 		camera->set_view(vec3(x, 2.0f, z), vec3(0.0f, 0.0f, 0.0f), vec3(0.0f, 1.0f, 0.0f));

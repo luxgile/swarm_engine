@@ -22,6 +22,8 @@ overloaded(Ts...) -> overloaded<Ts...>;
 template<typename T>
 using Option = std::optional<T>;
 
+constexpr std::nullopt_t None = std::nullopt;
+
 template<typename T, typename E>
 using Result = std::expected<T, E>;
 

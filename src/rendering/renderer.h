@@ -25,14 +25,14 @@ class Viewport;
 class RenderEnviroment;
 class RenderWorld;
 
-class Window {
+class AppWindow {
 	Viewport* vp;
 
 public:
 	GLFWwindow* gl_wnd;
 
 public:
-	Window(ivec2 size, string title);
+	AppWindow(ivec2 size, string title);
 	void make_current();
 	bool should_close();
 	void swap_buffers();
@@ -319,7 +319,7 @@ private:
 
 public:
 
-	std::vector<Window*> windows;
+	std::vector<AppWindow*> windows;
 	MemPool<RenderWorld> worlds;
 	MemPool<Viewport> viewports;
 	MemPool<RenderEnviroment> enviroments;
@@ -356,14 +356,14 @@ public:
 	Result<void, RendererError> setup();
 	bool is_imgui_installed() { return imgui_installed; }
 
-	Window* get_main_window() { return windows[0]; }
+	AppWindow* get_main_window() { return windows[0]; }
 
-	Window* create_window(ivec2 size, string title);
-	Window* get_window_from_glfw(GLFWwindow* wnd);
-	void destroy_window(Window* wnd);
+	AppWindow* create_window(ivec2 size, string title);
+	AppWindow* get_window_from_glfw(GLFWwindow* wnd);
+	void destroy_window(AppWindow* wnd);
 
 	void debug_backend(RenderWorld* world);
 
 	void render_worlds();
-	void render_world(RenderWorld* world);
+	Result<void, RendererError> render_world(RenderWorld* world);
 };

@@ -136,7 +136,9 @@
     <ClCompile Include="src\core.cpp" />
     <ClCompile Include="src\imgui\imgui_impl_glfw.cpp" />
     <ClCompile Include="src\imgui\imgui_impl_opengl3.cpp" />
+    <ClCompile Include="src\imgui\imgui_plugin.cpp" />
     <ClCompile Include="src\rendering\renderer.cpp" />
+    <ClCompile Include="src\rendering\render_plugin.cpp" />
     <ClCompile Include="src\rendering\render_world.cpp" />
     <ClCompile Include="src\Swarm.cpp" />
     <ClCompile Include="src\utils.cpp" />
@@ -144,11 +146,16 @@
     <ClCompile Include="src\venum.cpp" />
     <ClCompile Include="src\world.cpp" />
     <ClCompile Include="src_editor\editor_module.cpp" />
+    <ClCompile Include="src_editor\editor_plugin.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\assets\assets.h" />
     <ClInclude Include="src\assets\import.h" />
     <ClInclude Include="src\core.h" />
+    <ClInclude Include="src\flecs_helpers.h" />
+    <ClInclude Include="src\imgui\imgui_plugin.h" />
+    <ClInclude Include="src\plugin.h" />
+    <ClInclude Include="src\rendering\render_plugin.h" />
     <ClInclude Include="src\world.h" />
     <ClInclude Include="src\imgui\imgui_impl_glfw.h" />
     <ClInclude Include="src\imgui\imgui_impl_opengl3.h" />
@@ -159,6 +166,7 @@
     <ClInclude Include="src\rendering\render_world.h" />
     <ClInclude Include="src\venum.h" />
     <ClInclude Include="src_editor\editor_module.h" />
+    <ClInclude Include="src_editor\editor_plugin.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include=".gitignore" />

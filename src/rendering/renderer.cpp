@@ -7,6 +7,7 @@
 #include "imgui.h"
 #include "../imgui/imgui_impl_glfw.h"
 #include "../imgui/imgui_impl_opengl3.h"
+#include <print>
 
 using namespace std;
 const int SHADOW_RES = 1024;
@@ -18,7 +19,7 @@ Result<void, RendererError> RendererBackend::setup() {
 	setup_gl();
 
 	// Main Window
-	Window* wnd = create_window({ 1280, 720 }, "Swarm Window");
+	AppWindow* wnd = create_window({ 1280, 720 }, "Swarm Window");
 	wnd->make_current();
 
 	auto rglew = setup_glew();
@@ -82,20 +83,20 @@ Result<void, RendererError> RendererBackend::setup_imgui() {
 	imgui_installed = true;
 }
 
-Window* RendererBackend::create_window(ivec2 size, string title) {
-	Window* wnd = new Window(size, title);
+AppWindow* RendererBackend::create_window(ivec2 size, string title) {
+	AppWindow* wnd = new AppWindow(size, title);
 	windows.push_back(wnd);
 	return wnd;
 }
 
-Window* RendererBackend::get_window_from_glfw(GLFWwindow* wnd) {
+AppWindow* RendererBackend::get_window_from_glfw(GLFWwindow* wnd) {
 	for (auto w : windows) {
 		if (w->gl_wnd == wnd) return w;
 	}
 	return nullptr;
 }
 
-void RendererBackend::destroy_window(Window* wnd) {
+void RendererBackend::destroy_window(AppWindow* wnd) {
 	windows.erase(std::remove(windows.begin(), windows.end(), wnd), windows.end());
 }
 
@@ -113,41 +114,46 @@ void RendererBackend::debug_backend(RenderWorld* world) {
 			}
 		}
 		ImGui::End();
-		});
+	});
 }
 
 void RendererBackend::render_worlds() {
 	for (auto w : worlds) {
-		render_world(w);
+		if (!w->is_ready()) continue;
+		auto result = render_world(w);
+		if (!result) std::println("{}", result.error().error);
 	}
 }
 
-void RendererBackend::render_world(RenderWorld* world) {
+Result<void, RendererError> RendererBackend::render_world(RenderWorld* world) {
+	if (!world->is_ready()) return Error(RendererError{ .error = "Error: World not ready to be rendered. Check it was initialized properly." });
+
 	auto camera = world->get_active_camera();
 	render_shadowmaps(world->lights, world->visuals);
 	update_material_globals(world);
 
-
-	world->vp->use_viewport();
-	auto ccolor = world->env->clear_color;
+	if (world->vp) world->vp.value()->use_viewport();
+	auto ccolor = world->env ? world->env.value()->clear_color : vec4(0, 0, 0, 0);
 	glClearColor(ccolor.r, ccolor.g, ccolor.b, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	world->on_pre_render();
 
-	render_skybox(world);
-	render_visuals(camera->get_proj_mat(), camera->get_view_mat(), world->visuals, nullptr);
+	if (camera) {
+		render_skybox(world);
+		render_visuals(camera.value()->get_proj_mat(), camera.value()->get_view_mat(), world->visuals, nullptr);
+	}
 
-	if (is_imgui_installed()) {
-		ImGui_ImplOpenGL3_NewFrame();
-		ImGui_ImplGlfw_NewFrame();
-		ImGui::NewFrame();
+	if (is_imgui_installed() && world->imgui_draw_cmd) {
+		//ImGui_ImplOpenGL3_NewFrame();
+		//ImGui_ImplGlfw_NewFrame();
+		//ImGui::NewFrame();
 
 		// UI Rendering
-		world->on_ui_pass();
+		//world->on_ui_pass();
 
-		ImGui::Render();
-		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+		//ImGui::Render();
+		ImGui_ImplOpenGL3_RenderDrawData(world->imgui_draw_cmd.value());
 	}
 
 	world->on_post_render();
@@ -185,12 +191,16 @@ void RendererBackend::render_shadowmaps(vector<Light*> lights, vector<GPUVisual*
 
 void RendererBackend::render_skybox(RenderWorld* world) {
 
-	auto camera = world->get_active_camera();
+	auto opt_camera = world->get_active_camera();
+	if (!opt_camera) return;
+	if (!world->env) return;
+
+	auto camera = opt_camera.value();
 	auto view = mat4(mat3(camera->get_view_mat()));
 	auto proj = camera->get_proj_mat();
 
 	auto env = world->env;
-	auto skybox = env->skybox;
+	auto skybox = env.value()->skybox;
 
 	skybox->get_material()->get_shader()->set_matrix4("projection", proj);
 	skybox->get_material()->get_shader()->set_matrix4("view", view);
@@ -228,15 +238,21 @@ void RendererBackend::render_visual(GPUMaterial* material, GPUModel* model) {
 void RendererBackend::update_material_globals(RenderWorld* world) {
 	auto materials = world->materials;
 	auto lights = world->lights;
-	auto camera = world->get_active_camera();
-	auto env = world->env;
+	auto opt_camera = world->get_active_camera();
 	for (auto material : materials) {
 		material->update_internals();
 
 		auto shader = material->get_shader();
-		shader->set_vec3("viewPos", glm::inverse(camera->get_view_mat())[3]);
-		shader->set_vec3("ambientColor", env->ambient_color);
-		shader->set_float("ambient", env->ambient_intensity);
+		if (opt_camera) {
+			shader->set_vec3("viewPos", glm::inverse(opt_camera.value()->get_view_mat())[3]);
+		}
+
+		if (world->env) {
+			auto env = world->env.value();
+			shader->set_vec3("ambientColor", env->ambient_color);
+			shader->set_float("ambient", env->ambient_intensity);
+		}
+
 		shader->set_int("numOfLights", lights.size());
 		for (size_t i = 0; i < lights.size(); i++) {
 			auto light = lights[i];
@@ -256,48 +272,50 @@ void RendererBackend::update_material_globals(RenderWorld* world) {
 	}
 }
 
-Window::Window(ivec2 size, string title) {
+AppWindow::AppWindow(ivec2 size, string title) {
 	glfwWindowHint(GLFW_SAMPLES, 4);
 	gl_wnd = glfwCreateWindow(size.x, size.y, title.c_str(), NULL, NULL);
 
 	glfwSetWindowSizeCallback(gl_wnd, [](GLFWwindow* wnd, int w, int h) {
 		auto window = App::get_render_backend()->get_window_from_glfw(wnd);
 		window->vp->set_size(vec2(w, h));
-		});
+	});
 
 	if (App::get_render_backend()->is_imgui_installed()) {
 		ImGui_ImplGlfw_InitForOpenGL(gl_wnd, true);
 	}
 }
 
-void Window::make_current() {
+void AppWindow::make_current() {
 	glfwMakeContextCurrent(gl_wnd);
 }
 
-bool Window::should_close() {
+bool AppWindow::should_close() {
 	return glfwWindowShouldClose(gl_wnd);
 }
 
-void Window::swap_buffers() {
-	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
-	glBindFramebuffer(GL_READ_FRAMEBUFFER, vp->fbo->get_gl_id());
+void AppWindow::swap_buffers() {
+	if (vp) {
+		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+		glBindFramebuffer(GL_READ_FRAMEBUFFER, vp->fbo->get_gl_id());
+		auto size = get_size();
+		glBlitFramebuffer(0, 0, size.x, size.y, 0, 0, size.x, size.y, GL_COLOR_BUFFER_BIT, GL_NEAREST);
+	}
 
-	auto size = get_size();
-	glBlitFramebuffer(0, 0, size.x, size.y, 0, 0, size.x, size.y, GL_COLOR_BUFFER_BIT, GL_NEAREST);
 	glfwSwapBuffers(gl_wnd);
 }
 
-void Window::set_viewport(Viewport* vp) {
+void AppWindow::set_viewport(Viewport* vp) {
 	this->vp = vp;
 	vp->set_size(get_size());
 }
 
-void Window::set_size(ivec2 size) {
+void AppWindow::set_size(ivec2 size) {
 	glfwSetWindowSize(gl_wnd, size.x, size.y);
 	vp->set_size(size);
 }
 
-ivec2 Window::get_size() {
+ivec2 AppWindow::get_size() {
 	ivec2 size;
 	glfwGetWindowSize(gl_wnd, &size.x, &size.y);
 	return size;

@@ -3,6 +3,8 @@
 #include <glm/glm.hpp>
 #include "glm/common.hpp"
 #include "boost/signals2.hpp"
+#include <imgui.h>
+#include "../venum.h"
 
 using namespace glm;
 using namespace std;
@@ -22,9 +24,14 @@ class Viewport {
 public:
 	Viewport();
 	GPUFrameBuffer* fbo;
+
 	void use_viewport();
+
 	void set_size(vec2 size);
 	vec2 get_size() const { return size; }
+	
+	Option<GPUTexture2D*> get_color_ouput() const { return fbo_color; }
+	Option<GPUTexture2D*> get_depth_ouput() const { return fbo_depth_stencil; }
 };
 
 class RenderEnviroment {
@@ -41,19 +48,21 @@ class RenderWorld {
 public:
 	RenderWorld();
 
-	Viewport* vp;
-	RenderEnviroment* env;
-	
-	//boost::signal<void> dig;
+	Option<Viewport*> vp;
+	Option<RenderEnviroment*> env;
+	Option<ImDrawData*> imgui_draw_cmd;
+
 	boost::signals2::signal<void()> on_pre_render;
 	boost::signals2::signal<void()> on_ui_pass;
 	boost::signals2::signal<void()> on_post_render;
-	
+
 	vector<Camera*> cameras;
 	vector<Light*> lights;
 	vector<GPUMaterial*> materials;
 	vector<GPUVisual*> visuals;
 
-	Camera* get_active_camera();
+	Option<Camera*> get_active_camera();
+
+	bool is_ready() const;
 };
 
