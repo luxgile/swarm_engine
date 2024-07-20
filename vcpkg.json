@@ -2,11 +2,16 @@
   "dependencies": [
     "assimp",
     "boost-signals2",
+    "flecs",
     "glew",
     "glfw3",
     "glm",
-    "imgui",
-    "stb",
-    "flecs"
+    {
+      "name": "imgui",
+      "features": [
+        "docking-experimental"
+      ]
+    },
+    "stb"
   ]
 }

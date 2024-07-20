@@ -34,11 +34,16 @@ public:
 public:
 	AppWindow(ivec2 size, string title);
 	void make_current();
+
 	bool should_close();
+	void close();
+
 	void swap_buffers();
 
 	void set_viewport(Viewport* vp);
 	const Viewport* get_viewport() { return vp; }
+
+	void maximize();
 
 	void set_size(ivec2 size);
 	ivec2 get_size();

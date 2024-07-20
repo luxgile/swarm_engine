@@ -21,6 +21,7 @@ Result<void, RendererError> RendererBackend::setup() {
 	// Main Window
 	AppWindow* wnd = create_window({ 1280, 720 }, "Swarm Window");
 	wnd->make_current();
+	wnd->maximize();
 
 	auto rglew = setup_glew();
 	if (!rglew) return rglew;
@@ -75,7 +76,7 @@ Result<void, RendererError> RendererBackend::setup_imgui() {
 	ImGuiIO& io = ImGui::GetIO();
 	io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
 	io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
-	//io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
+	io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
 
 	ImGui_ImplOpenGL3_Init();
 	ImGui_ImplGlfw_InitForOpenGL(get_main_window()->gl_wnd, true); // We need to initialize 
@@ -278,7 +279,8 @@ AppWindow::AppWindow(ivec2 size, string title) {
 
 	glfwSetWindowSizeCallback(gl_wnd, [](GLFWwindow* wnd, int w, int h) {
 		auto window = App::get_render_backend()->get_window_from_glfw(wnd);
-		window->vp->set_size(vec2(w, h));
+		if (window->vp)
+			window->vp->set_size(vec2(w, h));
 	});
 
 	if (App::get_render_backend()->is_imgui_installed()) {
@@ -292,6 +294,10 @@ void AppWindow::make_current() {
 
 bool AppWindow::should_close() {
 	return glfwWindowShouldClose(gl_wnd);
+}
+
+void AppWindow::close() {
+	glfwSetWindowShouldClose(gl_wnd, true);
 }
 
 void AppWindow::swap_buffers() {
@@ -308,6 +314,10 @@ void AppWindow::swap_buffers() {
 void AppWindow::set_viewport(Viewport* vp) {
 	this->vp = vp;
 	vp->set_size(get_size());
+}
+
+void AppWindow::maximize() {
+	glfwMaximizeWindow(gl_wnd);
 }
 
 void AppWindow::set_size(ivec2 size) {

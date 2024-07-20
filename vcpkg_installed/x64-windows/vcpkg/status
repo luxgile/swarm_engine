@@ -1264,3 +1264,12 @@ Multi-Arch: same
 Description: Enable JSON functionality for sqlite3
 Status: purge ok not-installed
 
+Package: flecs
+Version: 3.2.11
+Depends: vcpkg-cmake, vcpkg-cmake-config
+Architecture: x64-windows
+Multi-Arch: same
+Abi: 3d7166595d9d910d4bed041682564cfc26fd172ea7183db1ec9ca70406c316e0
+Description: A fast entity component system (ECS) for C & C++
+Status: install ok installed
+

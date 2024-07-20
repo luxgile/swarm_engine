@@ -147,6 +147,9 @@
     <ClCompile Include="src\world.cpp" />
     <ClCompile Include="src_editor\editor_module.cpp" />
     <ClCompile Include="src_editor\editor_plugin.cpp" />
+    <ClCompile Include="src_editor\windows\editor_window.cpp" />
+    <ClCompile Include="src_editor\windows\viewport_window.cpp" />
+    <ClCompile Include="src_editor\windows\viewport_window.h" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\assets\assets.h" />
@@ -167,6 +170,7 @@
     <ClInclude Include="src\venum.h" />
     <ClInclude Include="src_editor\editor_module.h" />
     <ClInclude Include="src_editor\editor_plugin.h" />
+    <ClInclude Include="src_editor\windows\editor_window.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include=".gitignore" />
