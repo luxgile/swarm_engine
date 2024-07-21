@@ -513,7 +513,7 @@ Architecture: x64-windows
 Multi-Arch: same
 Abi: c43a991b1c6d9658de87f28270ef3ded57ff5ea0f4d826f1ead9255f8ce5ee1f
 Description: Boost winapi module
-Status: purge ok not-installed
+Status: install ok installed
 
 Package: boost-variant2
 Version: 1.85.0
@@ -1093,7 +1093,7 @@ Architecture: x64-windows
 Multi-Arch: same
 Abi: 30a7e6c13fcc95c5e6ed95d5d0f827c45c0c8320be04ba32324beaf8eccd0fe3
 Description: Boost stacktrace module
-Status: purge ok not-installed
+Status: install ok installed
 
 Package: boost-sort
 Version: 1.85.0

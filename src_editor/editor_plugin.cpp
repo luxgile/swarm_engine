@@ -16,7 +16,7 @@ Result<void, PluginError> EditorPlugin::setup_plugin(World* world) {
 	auto app_render_world = app_ecs->get<CRenderWorld>();
 
 	editor_ecs->system("Main editor docking space")
-		.iter([](flecs::iter& it) {
+		.run([](flecs::iter& it) {
 		auto wnd = App::get_render_backend()->get_main_window();
 		auto wnd_size = wnd->get_size();
 		auto wnd_flags = ImGuiWindowFlags_NoBringToFrontOnFocus |
@@ -57,12 +57,8 @@ Result<void, PluginError> EditorPlugin::setup_plugin(World* world) {
 	editor_ecs->entity("Viewport").add<CViewportWindow>();
 	editor_ecs->entity("Console").add<CConsoleWindow>();
 
-	editor_ecs->system<CViewportWindow>("Draw Viewport")
-		.each([](flecs::entity e, CViewportWindow& wnd) {
-		wnd.draw_window();
-	});
-	editor_ecs->system<CConsoleWindow>("Draw Console")
-		.each([](flecs::entity e, CConsoleWindow& wnd) {
+	editor_ecs->system<CEditorWindow>("Draw Viewport")
+		.each([](flecs::entity e, CEditorWindow& wnd) {
 		wnd.draw_window();
 	});
 

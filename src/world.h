@@ -1,5 +1,5 @@
 #pragma once
-#include <flecs.h>
+#include "flecs/flecs.h"
 #include "plugin.h"
 #include <typeindex>
 #include <typeinfo>

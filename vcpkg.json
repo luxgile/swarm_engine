@@ -3,7 +3,6 @@
     "assimp",
     "boost-signals2",
     "boost-stacktrace",
-    "flecs",
     "glew",
     "glfw3",
     "glm",

@@ -11,7 +11,7 @@ void World::process_frame(float dt) {
 void World::toggle_flecs_rest(bool state) {
 	if (state) {
 		ecs->set<flecs::Rest>({});
-		ecs->import<flecs::monitor>();
+		ecs->import<flecs::stats>();
 	}
 	else ecs->remove<flecs::Rest>();
 }

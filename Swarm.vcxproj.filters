@@ -78,6 +78,9 @@
     <ClCompile Include="src\logging.cpp">
       <Filter>Archivos de origen</Filter>
     </ClCompile>
+    <ClCompile Include="src\flecs\flecs.c">
+      <Filter>Archivos de origen</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\core.h">
@@ -141,6 +144,9 @@
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
     <ClInclude Include="src\logging.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="src\flecs\flecs.h">
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
   </ItemGroup>

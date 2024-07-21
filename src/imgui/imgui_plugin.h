@@ -3,7 +3,7 @@
 #include "../plugin.h"
 #include "../rendering/renderer.h"
 #include "../rendering/render_plugin.h"
-#include <flecs.h>
+#include "../flecs/flecs.h"
 
 struct CImGuiEnabled {
 	bool value;
