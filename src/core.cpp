@@ -18,7 +18,7 @@ App::App() {
 	target_fps = 60;
 
 	asset_backend = std::make_unique<AssetBackend>();
-	asset_backend.get()->set_asset_folder(string("E:/dev/Swarm/res/"));
+	asset_backend.get()->set_asset_folder(std::string("E:/dev/Swarm/res/"));
 	asset_backend.get()->register_importer<GPUShaderImport>();
 	asset_backend.get()->register_importer<GPUModelImport>();
 	asset_backend.get()->register_importer<GPUCubemapTextureImport>();
@@ -84,9 +84,9 @@ void App::app_loop() {
 	world->materials.push_back(material);
 
 	auto monkey_visual = render->visuals.create();
-	auto xform = glm::identity<mat4>();
-	xform = glm::rotate(xform, glm::radians(180.0f), vec3(0, 1, 0));
-	xform = glm::translate(xform, vec3(0, 1, 0));
+	auto xform = glm::identity<glm::mat4>();
+	xform = glm::rotate(xform, glm::radians(180.0f), glm::vec3(0, 1, 0));
+	xform = glm::translate(xform, glm::vec3(0, 1, 0));
 	monkey_visual->set_xform(xform);
 	monkey_visual->set_model(monkey_model);
 	monkey_visual->set_material(material);
@@ -95,47 +95,47 @@ void App::app_loop() {
 	auto floor_visual = render->visuals.create();
 	floor_visual->set_model(cube_model);
 	floor_visual->set_material(material);
-	floor_visual->set_xform(glm::translate(glm::scale(glm::identity<mat4>(), vec3(25.0f, 0.1f, 25.0f)), vec3(0, -10.0f, 0)));
+	floor_visual->set_xform(glm::translate(glm::scale(glm::identity<glm::mat4>(), glm::vec3(25.0f, 0.1f, 25.0f)), glm::vec3(0, -10.0f, 0)));
 	world->visuals.push_back(floor_visual);
 
 	auto ligth = render->lights.create();
 	ligth->type = LightType::Point;
-	ligth->position = vec3(3.0, 1.0, -1.0);
-	ligth->color = vec3(1.0f, 0.8f, 0.8f);
+	ligth->position = glm::vec3(3.0, 1.0, -1.0);
+	ligth->color = glm::vec3(1.0f, 0.8f, 0.8f);
 	ligth->intensity = 3.0f;
 	world->lights.push_back(ligth);
 
 	auto ligth2 = render->lights.create();
 	ligth2->set_cast_shadows(true);
 	ligth2->type = LightType::Point;
-	ligth2->position = vec3(-3.0, 1.0, -1.0);
-	ligth2->color = vec3(0.3, 0.4, 0.8);
+	ligth2->position = glm::vec3(-3.0, 1.0, -1.0);
+	ligth2->color = glm::vec3(0.3, 0.4, 0.8);
 	ligth2->intensity = 7.0f;
 	world->lights.push_back(ligth2);
 
 	auto sun = render->lights.create();
 	sun->set_cast_shadows(true);
 	sun->type = LightType::Directional;
-	sun->dir = glm::normalize(vec3(0.3, -0.5, 0.2));
-	sun->color = vec3(1.0, 1.0, 1.0);
+	sun->dir = glm::normalize(glm::vec3(0.3, -0.5, 0.2));
+	sun->color = glm::vec3(1.0, 1.0, 1.0);
 	sun->intensity = 1.0f;
 	world->lights.push_back(sun);
 
 	auto sun2 = render->lights.create();
 	sun2->set_cast_shadows(true);
 	sun2->type = LightType::Directional;
-	sun2->dir = glm::normalize(vec3(-0.3, -0.5, 0.2));
-	sun2->color = vec3(1.0, 1.0, 1.0);
+	sun2->dir = glm::normalize(glm::vec3(-0.3, -0.5, 0.2));
+	sun2->color = glm::vec3(1.0, 1.0, 1.0);
 	sun2->intensity = 1.0f;
 	world->lights.push_back(sun2);
 
 	auto proj = glm::perspectiveFov(90.0f, 1280.0f, 720.0f, 0.1f, 100.0f);
 	auto camera = render->cameras.create();
-	camera->set_proj(70.0f, vec2(1280.0f, 720.0f), vec2(0.1f, 100.0f));
-	camera->set_view(vec3(0, 3, -10), vec3(0, 2, 0), vec3(0, 1, 0));
+	camera->set_proj(70.0f, glm::vec2(1280.0f, 720.0f), glm::vec2(0.1f, 100.0f));
+	camera->set_view(glm::vec3(0, 3, -10), glm::vec3(0, 2, 0), glm::vec3(0, 1, 0));
 	world->cameras.push_back(camera);
 
-	world->env.value()->clear_color = vec3(0.2, 0.1, 0.3);
+	world->env.value()->clear_color = glm::vec3(0.2, 0.1, 0.3);
 
 	if (target_fps != 0) glfwSwapInterval(target_fps);
 	glEnable(GL_MULTISAMPLE);
@@ -165,7 +165,7 @@ void App::app_loop() {
 
 		float x = glm::cos(app_time / 5.0f) * 10;
 		float z = -glm::sin(app_time / 5.0f) * 10;
-		camera->set_view(vec3(x, 2.0f, z), vec3(0.0f, 0.0f, 0.0f), vec3(0.0f, 1.0f, 0.0f));
+		camera->set_view(glm::vec3(x, 2.0f, z), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
 
 		// Render here
 		render->render_worlds();

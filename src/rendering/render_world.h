@@ -6,9 +6,6 @@
 #include <imgui.h>
 #include "../venum.h"
 
-using namespace glm;
-using namespace std;
-
 class Camera;
 struct Light;
 class GPUMaterial;
@@ -17,7 +14,7 @@ class GPUFrameBuffer;
 class GPUTexture2D;
 
 class Viewport {
-	vec2 size;
+	glm::vec2 size;
 	GPUTexture2D* fbo_color;
 	GPUTexture2D* fbo_depth_stencil;
 
@@ -27,17 +24,17 @@ public:
 
 	void use_viewport();
 
-	void set_size(vec2 size);
-	vec2 get_size() const { return size; }
-	
+	void set_size(glm::vec2 size);
+	glm::vec2 get_size() const { return size; }
+
 	Option<GPUTexture2D*> get_color_ouput() const { return fbo_color; }
 	Option<GPUTexture2D*> get_depth_ouput() const { return fbo_depth_stencil; }
 };
 
 class RenderEnviroment {
 public:
-	vec3 clear_color;
-	vec3 ambient_color = vec3(0.3f, 0.3f, 0.1f);
+	glm::vec3 clear_color;
+	glm::vec3 ambient_color = glm::vec3(0.3f, 0.3f, 0.1f);
 	float ambient_intensity = 0.3f;
 
 	GPUVisual* skybox;
@@ -56,10 +53,10 @@ public:
 	boost::signals2::signal<void()> on_ui_pass;
 	boost::signals2::signal<void()> on_post_render;
 
-	vector<Camera*> cameras;
-	vector<Light*> lights;
-	vector<GPUMaterial*> materials;
-	vector<GPUVisual*> visuals;
+	std::vector<Camera*> cameras;
+	std::vector<Light*> lights;
+	std::vector<GPUMaterial*> materials;
+	std::vector<GPUVisual*> visuals;
 
 	Option<Camera*> get_active_camera();
 

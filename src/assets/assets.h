@@ -8,15 +8,14 @@
 #include "../core.h"
 #include "import.h"
 
-using namespace std;
 class App;
 
 class AssetId {
-	string id;
+	std::string id;
 	size_t hashed_id;
 public:
-	AssetId(string id);
-	const string get_id() { return id; }
+	AssetId(std::string id);
+	const std::string get_id() { return id; }
 	const size_t get_hash() { return hashed_id; }
 
 	bool operator ==(AssetId* id) const { return id->hashed_id == hashed_id; }
@@ -24,7 +23,7 @@ public:
 
 class Asset {
 	AssetId id;
-	string path;
+	std::string path;
 
 public:
 	void serialize();
@@ -40,10 +39,10 @@ enum RefType {
 template<typename T>
 class AssetRef {
 	AssetId id;
-	string path;
+	std::string path;
 	RefType type;
 public:
-	AssetRef(RefType type, string asset);
+	AssetRef(RefType type, std::string asset);
 	const T* get() const {
 		switch (type) {
 		case Id:
@@ -64,12 +63,12 @@ public:
 };
 
 class AssetBackend {
-	string asset_path;
-	map<type_index, BaseFileImport*> importers;
-	map<size_t, Asset> assets;
+	std::string asset_path;
+	std::map<std::type_index, BaseFileImport*> importers;
+	std::map<size_t, Asset> assets;
 
 public:
-	void set_asset_folder(string path);
+	void set_asset_folder(std::string path);
 
 	template<typename T>
 	void register_importer();
@@ -77,12 +76,12 @@ public:
 	template<typename T>
 	Result<T*, ImportError> load_file(const char* path);
 	template<typename T>
-	Result<T*, ImportError> load_file(string path) { return load_file<T>(path.c_str()); }
+	Result<T*, ImportError> load_file(std::string path) { return load_file<T>(path.c_str()); }
 };
 
 template<typename T>
 inline void AssetBackend::register_importer() {
-	static_assert(is_base_of<BaseFileImport, T>(), "T must be a FileImporter");
+	static_assert(std::is_base_of<BaseFileImport, T>(), "T must be a FileImporter");
 	T* importer = new T();
 	importers[importer->file_type()] = static_cast<BaseFileImport*>(importer);
 }
@@ -95,7 +94,7 @@ inline Result<T*, ImportError> AssetBackend::load_file(const char* path) {
 		return nullptr;
 	}
 	auto importer = importers[typeid(T)];
-	string abs_path = asset_path + path;
+	std::string abs_path = asset_path + path;
 	auto file = importer->raw_load_file(abs_path.c_str());
 	if (!file) {
 		return Error(file.error());
@@ -105,7 +104,7 @@ inline Result<T*, ImportError> AssetBackend::load_file(const char* path) {
 }
 
 template<typename T>
-inline AssetRef<T>::AssetRef(RefType type, string asset) {
+inline AssetRef<T>::AssetRef(RefType type, std::string asset) {
 	this->type = type;
 	switch (type) {
 	case Id:

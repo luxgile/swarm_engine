@@ -9,7 +9,6 @@
 #include "../imgui/imgui_impl_opengl3.h"
 #include "../logging.h"
 
-using namespace std;
 const int SHADOW_RES = 1024;
 
 RendererBackend::RendererBackend() {
@@ -65,7 +64,7 @@ Result<void, RendererError> RendererBackend::setup_internals() {
 	shadowmap_textures->set_as_depth(SHADOW_RES, SHADOW_RES, 16, NULL);
 	shadowmap_textures->set_filter(TextureFilter::Linear);
 	shadowmap_textures->set_wrap(TextureWrap::ClampBorder);
-	shadowmap_textures->set_border_color(vec4(1.0, 1.0, 1.0, 1.0));
+	shadowmap_textures->set_border_color(glm::vec4(1.0, 1.0, 1.0, 1.0));
 }
 
 Result<void, RendererError> RendererBackend::setup_imgui() {
@@ -84,7 +83,7 @@ Result<void, RendererError> RendererBackend::setup_imgui() {
 	imgui_installed = true;
 }
 
-AppWindow* RendererBackend::create_window(ivec2 size, string title) {
+AppWindow* RendererBackend::create_window(glm::ivec2 size, std::string title) {
 	AppWindow* wnd = new AppWindow(size, title);
 	windows.push_back(wnd);
 	return wnd;
@@ -134,7 +133,7 @@ Result<void, RendererError> RendererBackend::render_world(RenderWorld* world) {
 	update_material_globals(world);
 
 	if (world->vp) world->vp.value()->use_viewport();
-	auto ccolor = world->env ? world->env.value()->clear_color : vec4(0, 0, 0, 0);
+	auto ccolor = world->env ? world->env.value()->clear_color : glm::vec4(0, 0, 0, 0);
 	glClearColor(ccolor.r, ccolor.g, ccolor.b, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -162,7 +161,7 @@ Result<void, RendererError> RendererBackend::render_world(RenderWorld* world) {
 	GPUFrameBuffer::unbind_framebuffer();
 }
 
-void RendererBackend::render_shadowmaps(vector<Light*> lights, vector<GPUVisual*> visuals) {
+void RendererBackend::render_shadowmaps(std::vector<Light*> lights, std::vector<GPUVisual*> visuals) {
 
 	for (size_t i = 0; i < lights.size(); i++) {
 		auto light = lights[i];
@@ -197,7 +196,7 @@ void RendererBackend::render_skybox(RenderWorld* world) {
 	if (!world->env) return;
 
 	auto camera = opt_camera.value();
-	auto view = mat4(mat3(camera->get_view_mat()));
+	auto view = glm::mat4(glm::mat3(camera->get_view_mat()));
 	auto proj = camera->get_proj_mat();
 
 	auto env = world->env;
@@ -213,7 +212,7 @@ void RendererBackend::render_skybox(RenderWorld* world) {
 	glCullFace(GL_BACK);
 }
 
-void RendererBackend::render_visuals(mat4 proj, mat4 view, vector<GPUVisual*> visuals, GPUMaterial* mat_override = nullptr) {
+void RendererBackend::render_visuals(glm::mat4 proj, glm::mat4 view, std::vector<GPUVisual*> visuals, GPUMaterial* mat_override = nullptr) {
 	for (auto v : visuals) {
 		auto mvp = proj * view * *v->get_xform();
 		auto mat = mat_override ? mat_override : v->get_material();
@@ -257,7 +256,7 @@ void RendererBackend::update_material_globals(RenderWorld* world) {
 		shader->set_int("numOfLights", lights.size());
 		for (size_t i = 0; i < lights.size(); i++) {
 			auto light = lights[i];
-			string ligth_access_std = "lights[" + std::to_string(i) + "].";
+			std::string ligth_access_std = "lights[" + std::to_string(i) + "].";
 			shader->set_bool((ligth_access_std + "enabled").c_str(), true);
 			shader->set_int((ligth_access_std + "type").c_str(), (int)light->type);
 			shader->set_vec3((ligth_access_std + "position").c_str(), light->position);
@@ -273,14 +272,14 @@ void RendererBackend::update_material_globals(RenderWorld* world) {
 	}
 }
 
-AppWindow::AppWindow(ivec2 size, string title) {
+AppWindow::AppWindow(glm::ivec2 size, std::string title) {
 	glfwWindowHint(GLFW_SAMPLES, 4);
 	gl_wnd = glfwCreateWindow(size.x, size.y, title.c_str(), NULL, NULL);
 
 	glfwSetWindowSizeCallback(gl_wnd, [](GLFWwindow* wnd, int w, int h) {
 		auto window = App::get_render_backend()->get_window_from_glfw(wnd);
 		if (window->vp)
-			window->vp->set_size(vec2(w, h));
+			window->vp->set_size(glm::vec2(w, h));
 	});
 
 	if (App::get_render_backend()->is_imgui_installed()) {
@@ -320,13 +319,13 @@ void AppWindow::maximize() {
 	glfwMaximizeWindow(gl_wnd);
 }
 
-void AppWindow::set_size(ivec2 size) {
+void AppWindow::set_size(glm::ivec2 size) {
 	glfwSetWindowSize(gl_wnd, size.x, size.y);
 	vp->set_size(size);
 }
 
-ivec2 AppWindow::get_size() {
-	ivec2 size;
+glm::ivec2 AppWindow::get_size() {
+	glm::ivec2 size;
 	glfwGetWindowSize(gl_wnd, &size.x, &size.y);
 	return size;
 }
@@ -341,7 +340,7 @@ Result<GL_ID, ShaderError> GPUShader::compile_source(ShaderSrcType type, const c
 	if (!success) {
 		char infoLog[512];
 		glGetShaderInfoLog(compiled, 512, NULL, infoLog);
-		return Error(ShaderError{ .error = format("Compilation failed for shader source {}: \n%s", (int)type, infoLog) });
+		return Error(ShaderError{ .error = std::format("Compilation failed for shader source {}: \n%s", (int)type, infoLog) });
 	};
 	return compiled;
 }
@@ -365,7 +364,7 @@ Result<void, ShaderError> GPUShader::compile_shader(const char* vert, const char
 	if (!success) {
 		char infoLog[512];
 		glGetProgramInfoLog(gl_program, 512, NULL, infoLog);
-		return Error(ShaderError{ .error = format("Failed linking shader:\n%s", infoLog) });
+		return Error(ShaderError{ .error = std::format("Failed linking shader:\n%s", infoLog) });
 	}
 
 	glDeleteShader(vertex);
@@ -376,11 +375,11 @@ void GPUShader::use_shader() const {
 	glUseProgram(gl_program);
 }
 
-void GPUShader::set_sampler_id(string uniform, SamplerID id) {
+void GPUShader::set_sampler_id(std::string uniform, SamplerID id) {
 	set_sampler_id(uniform, (uint)id);
 }
 
-void GPUShader::set_sampler_id(string uniform, uint id) {
+void GPUShader::set_sampler_id(std::string uniform, uint id) {
 	use_shader();
 	unsigned int uniform_loc = glGetUniformLocation(gl_program, uniform.c_str());
 	glUniform1i(uniform_loc, id);
@@ -404,25 +403,25 @@ void GPUShader::set_float(const char* uniform, float value) const {
 	glUniform1f(uniform_loc, value);
 }
 
-void GPUShader::set_vec2(const char* uniform, vec2 value) const {
+void GPUShader::set_vec2(const char* uniform, glm::vec2 value) const {
 	use_shader();
 	unsigned int uniform_loc = glGetUniformLocation(gl_program, uniform);
 	glUniform2f(uniform_loc, value.x, value.y);
 }
 
-void GPUShader::set_vec3(const char* uniform, vec3 value) const {
+void GPUShader::set_vec3(const char* uniform, glm::vec3 value) const {
 	use_shader();
 	unsigned int uniform_loc = glGetUniformLocation(gl_program, uniform);
 	glUniform3f(uniform_loc, value.x, value.y, value.z);
 }
 
-void GPUShader::set_vec4(const char* uniform, vec4 value) const {
+void GPUShader::set_vec4(const char* uniform, glm::vec4 value) const {
 	use_shader();
 	unsigned int uniform_loc = glGetUniformLocation(gl_program, uniform);
 	glUniform4f(uniform_loc, value.x, value.y, value.z, value.w);
 }
 
-void GPUShader::set_matrix4(const char* uniform, mat4 matrix) const {
+void GPUShader::set_matrix4(const char* uniform, glm::mat4 matrix) const {
 	use_shader();
 	unsigned int uniform_loc = glGetUniformLocation(gl_program, uniform);
 	glUniformMatrix4fv(uniform_loc, 1, GL_FALSE, glm::value_ptr(matrix));
@@ -458,14 +457,14 @@ GPUMesh::GPUMesh() {
 	glGenBuffers(1, &gl_elements_buffer);
 }
 
-void GPUMesh::set_triangles(vector<unsigned int> indices) {
+void GPUMesh::set_triangles(std::vector<unsigned int> indices) {
 	elements_count = indices.size();
 	glBindVertexArray(gl_vertex_array);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, gl_elements_buffer);
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(unsigned int) * indices.size(), &indices[0], GL_STATIC_DRAW);
 }
 
-void GPUMesh::set_vertices(vector<Vertex> vertices) {
+void GPUMesh::set_vertices(std::vector<Vertex> vertices) {
 	vertex_count = vertices.size();
 	glBindVertexArray(gl_vertex_array);
 	glBindBuffer(GL_ARRAY_BUFFER, gl_vertex_buffer);
@@ -487,12 +486,12 @@ void GPUMesh::use_mesh() const {
 	glBindVertexArray(gl_vertex_array);
 }
 
-void Camera::set_view(vec3 pos, vec3 target, vec3 up) {
+void Camera::set_view(glm::vec3 pos, glm::vec3 target, glm::vec3 up) {
 	view = glm::lookAt(pos, target, up);
 }
 
-void Camera::set_proj(float fov, vec2 screen_size, vec2 near_far_plane) {
-	proj = perspectiveFov(fov, screen_size.x, screen_size.y, near_far_plane.x, near_far_plane.y);
+void Camera::set_proj(float fov, glm::vec2 screen_size, glm::vec2 near_far_plane) {
+	proj = glm::perspectiveFov(fov, screen_size.x, screen_size.y, near_far_plane.x, near_far_plane.y);
 }
 
 GPUTexture2D::GPUTexture2D() {
@@ -605,23 +604,23 @@ GPURenderBuffer::GPURenderBuffer() {
 	glGenRenderbuffers(1, &gl_rbo);
 }
 
-void GPURenderBuffer::set_format(TextureFormat format, vec2 size) {
+void GPURenderBuffer::set_format(TextureFormat format, glm::vec2 size) {
 	glBindRenderbuffer(GL_RENDERBUFFER, gl_rbo);
 	glRenderbufferStorage(GL_RENDERBUFFER, to_gl(format), size.x, size.y);
 }
 
-mat4 Light::build_view_matrix() {
-	if (type == LightType::Directional) return glm::lookAt(-dir * 10.0f, vec3(0.0f), vec3(0.0f, 1.0f, 0.0f));
-	return glm::lookAt(position, position + dir, vec3(0, 1, 0));
+glm::mat4 Light::build_view_matrix() {
+	if (type == LightType::Directional) return glm::lookAt(-dir * 10.0f, glm::vec3(0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+	return glm::lookAt(position, position + dir, glm::vec3(0, 1, 0));
 }
 
-mat4 Light::build_proj_matrix() {
+glm::mat4 Light::build_proj_matrix() {
 	switch (type) {
 	case Directional:
 		return glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, 1.0f, 20.0f);
 	case Point:
 	default:
-		return glm::identity<mat4>();
+		return glm::identity<glm::mat4>();
 	}
 }
 
@@ -683,7 +682,7 @@ void GPUCubemapTexture::set_as_depth(uint width, uint heigth, unsigned char* dat
 void GPUCubemapTexture::set_as_rgb8(uint width, uint heigth, unsigned char* data) {
 }
 
-void GPUCubemapTexture::set_as_rgb8(uint width, uint heigth, vector<unsigned char*> data) {
+void GPUCubemapTexture::set_as_rgb8(uint width, uint heigth, std::vector<unsigned char*> data) {
 	use_texture();
 	for (size_t i = 0; i < 6; i++) {
 		glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB, width, heigth, 0, GL_RGB, GL_UNSIGNED_BYTE, data[i]);
@@ -750,7 +749,7 @@ void GPUTexture::set_filter(TextureFilter filter) {
 	glTexParameteri(type, GL_TEXTURE_MAG_FILTER, gl_mm_filter);
 }
 
-void GPUTexture::set_border_color(vec4 color) {
+void GPUTexture::set_border_color(glm::vec4 color) {
 	use_texture();
 	glTexParameterfv(get_gl_type(), GL_TEXTURE_BORDER_COLOR, &color.x);
 }

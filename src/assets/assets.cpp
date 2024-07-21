@@ -2,13 +2,13 @@
 
 #include "../core.h"
 
-AssetId::AssetId(string id) {
+AssetId::AssetId(std::string id) {
 	this->id = id;
-	auto hasher = hash<string>();
+	auto hasher = std::hash<std::string>();
 	hashed_id = hasher(id);
 }
 
-void AssetBackend::set_asset_folder(string path) {
+void AssetBackend::set_asset_folder(std::string path) {
 	asset_path = path;
 }
 

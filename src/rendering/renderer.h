@@ -18,9 +18,6 @@
 typedef unsigned int GL_ID;
 typedef unsigned int uint;
 
-using namespace glm;
-using namespace std;
-
 class Viewport;
 class RenderEnviroment;
 class RenderWorld;
@@ -32,7 +29,7 @@ public:
 	GLFWwindow* gl_wnd;
 
 public:
-	AppWindow(ivec2 size, string title);
+	AppWindow(glm::ivec2 size, std::string title);
 	void make_current();
 
 	bool should_close();
@@ -45,21 +42,21 @@ public:
 
 	void maximize();
 
-	void set_size(ivec2 size);
-	ivec2 get_size();
+	void set_size(glm::ivec2 size);
+	glm::ivec2 get_size();
 };
 
 class Camera {
-	mat4 view;
-	mat4 proj;
+	glm::mat4 view;
+	glm::mat4 proj;
 
 public:
 	int priority = 0;
 
-	void set_view(vec3 pos, vec3 target, vec3 up);
-	mat4 get_view_mat() const { return view; }
-	void set_proj(float fov, vec2 screen_size, vec2 near_far_plane);
-	mat4 get_proj_mat() const { return proj; }
+	void set_view(glm::vec3 pos, glm::vec3 target, glm::vec3 up);
+	glm::mat4 get_view_mat() const { return view; }
+	void set_proj(float fov, glm::vec2 screen_size, glm::vec2 near_far_plane);
+	glm::mat4 get_proj_mat() const { return proj; }
 };
 
 enum ShaderSrcType {
@@ -89,24 +86,24 @@ private:
 public:
 	Result<void, ShaderError>  compile_shader(const char* vert, const char* frag);
 	void use_shader() const;
-	void set_sampler_id(string uniform, SamplerID id);
-	void set_sampler_id(string uniform, uint id);
+	void set_sampler_id(std::string uniform, SamplerID id);
+	void set_sampler_id(std::string uniform, uint id);
 	void set_bool(const char* uniform, bool value) const;
 	void set_int(const char* uniform, int value) const;
 	void set_float(const char* uniform, float value) const;
-	void set_vec2(const char* uniform, vec2 value) const;
-	void set_vec3(const char* uniform, vec3 value) const;
-	void set_vec4(const char* uniform, vec4 value) const;
-	void set_matrix4(const string uniform, mat4 matrix) const { set_matrix4(uniform.c_str(), matrix); }
-	void set_matrix4(const char* uniform, mat4 matrix) const;
+	void set_vec2(const char* uniform, glm::vec2 value) const;
+	void set_vec3(const char* uniform, glm::vec3 value) const;
+	void set_vec4(const char* uniform, glm::vec4 value) const;
+	void set_matrix4(const std::string uniform, glm::mat4 matrix) const { set_matrix4(uniform.c_str(), matrix); }
+	void set_matrix4(const char* uniform, glm::mat4 matrix) const;
 };
 
 struct Vertex {
-	vec3 position;
-	vec3 normal = vec3(0.0f, 0.0f, 0.0f);
-	vec3 tangent = vec3(0.0f, 0.0f, 0.0f);
-	vec3 color = vec3(1.0f, 1.0f, 1.0f);
-	vec2 coords = vec2(0.0f, 0.0f);
+	glm::vec3 position;
+	glm::vec3 normal = glm::vec3(0.0f, 0.0f, 0.0f);
+	glm::vec3 tangent = glm::vec3(0.0f, 0.0f, 0.0f);
+	glm::vec3 color = glm::vec3(1.0f, 1.0f, 1.0f);
+	glm::vec2 coords = glm::vec2(0.0f, 0.0f);
 };
 
 class GPUMesh {
@@ -119,8 +116,8 @@ class GPUMesh {
 public:
 	GPUMesh();
 
-	void set_triangles(vector<unsigned int> indices);
-	void set_vertices(vector<Vertex> vertices);
+	void set_triangles(std::vector<unsigned int> indices);
+	void set_vertices(std::vector<Vertex> vertices);
 
 	void use_mesh() const;
 	uint get_vertex_count() const { return vertex_count; }
@@ -153,7 +150,7 @@ public:
 	virtual void set_as_depth_stencil(uint width, uint heigth, unsigned char* data);
 	virtual void set_wrap(TextureWrap wrap);
 	virtual void set_filter(TextureFilter wrap);
-	virtual void set_border_color(vec4 color);
+	virtual void set_border_color(glm::vec4 color);
 };
 
 class GPUTexture2D : public GPUTexture {
@@ -182,7 +179,7 @@ public:
 	GPURenderBuffer();
 
 	GL_ID get_gl_id() { return gl_rbo; }
-	void set_format(TextureFormat format, vec2 size);
+	void set_format(TextureFormat format, glm::vec2 size);
 };
 
 class GPUTexture2DArray : public GPUTexture {
@@ -241,17 +238,17 @@ public:
 	uint get_gl_type() const override;
 	void set_as_depth(uint width, uint heigth, unsigned char* data) override;
 	void set_as_rgb8(uint width, uint heigth, unsigned char* data) override;
-	void set_as_rgb8(uint width, uint heigth, vector<unsigned char*> data);
+	void set_as_rgb8(uint width, uint heigth, std::vector<unsigned char*> data);
 };
 
 class GPUModel {
 public:
-	vector<GPUMesh*> meshes;
+	std::vector<GPUMesh*> meshes;
 };
 
 class GPUMaterial {
 	GPUShader* shader;
-	vector<GPUTexture*> textures = vector<GPUTexture*>(16, nullptr);
+	std::vector<GPUTexture*> textures = std::vector<GPUTexture*>(16, nullptr);
 public:
 	GPUMaterial();
 	/// @brief Tell GL to render using this material.
@@ -265,8 +262,8 @@ public:
 
 class GPUPbrMaterial : public GPUMaterial {
 public:
-	vec4 albedo = vec4(1.0, 1.0, 1.0, 1.0);
-	vec4 emissive = vec4(0.0, 0.0, 0.0, 0.0);
+	glm::vec4 albedo = glm::vec4(1.0, 1.0, 1.0, 1.0);
+	glm::vec4 emissive = glm::vec4(0.0, 0.0, 0.0, 0.0);
 	float metallic = 0.3f;
 	float roughness = 0.1f;
 	float ambient_occlusion = 1.0f;
@@ -275,13 +272,13 @@ public:
 };
 
 class GPUVisual {
-	mat4 xform;
+	glm::mat4 xform;
 	GPUMaterial* material;
 	GPUModel* model;
 
 public:
-	void set_xform(mat4 xform) { this->xform = xform; }
-	mat4* get_xform() { return &xform; }
+	void set_xform(glm::mat4 xform) { this->xform = xform; }
+	glm::mat4* get_xform() { return &xform; }
 	void set_model(GPUModel* model) { this->model = model; }
 	GPUModel* get_model() { return model; }
 	void set_material(GPUMaterial* shader) { this->material = shader; }
@@ -294,13 +291,13 @@ enum LightType {
 };
 struct Light {
 	LightType type;
-	vec3 dir;
-	vec3 position;
+	glm::vec3 dir;
+	glm::vec3 position;
 	float intensity;
-	vec3 color;
+	glm::vec3 color;
 
-	mat4 build_view_matrix();
-	mat4 build_proj_matrix();
+	glm::mat4 build_view_matrix();
+	glm::mat4 build_proj_matrix();
 
 	void set_cast_shadows(bool state);
 	bool get_cast_shadows() { return cast_shadows; }
@@ -348,9 +345,9 @@ private:
 	Result<void, RendererError> setup_internals();
 	Result<void, RendererError> setup_imgui();
 
-	void render_shadowmaps(vector<Light*> lights, vector<GPUVisual*> visuals);
+	void render_shadowmaps(std::vector<Light*> lights, std::vector<GPUVisual*> visuals);
 	void render_skybox(RenderWorld* world);
-	void render_visuals(mat4 proj, mat4 view, vector<GPUVisual*> visuals, GPUMaterial* mat_override);
+	void render_visuals(glm::mat4 proj, glm::mat4 view, std::vector<GPUVisual*> visuals, GPUMaterial* mat_override);
 	void render_visual(GPUMaterial* material, GPUModel* model);
 	void update_material_globals(RenderWorld* world);
 	void render_visual(GPUVisual* visual);
@@ -363,7 +360,7 @@ public:
 
 	AppWindow* get_main_window() { return windows[0]; }
 
-	AppWindow* create_window(ivec2 size, string title);
+	AppWindow* create_window(glm::ivec2 size, std::string title);
 	AppWindow* get_window_from_glfw(GLFWwindow* wnd);
 	void destroy_window(AppWindow* wnd);
 

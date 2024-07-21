@@ -41,7 +41,7 @@ void Viewport::use_viewport() {
 	fbo->use_framebuffer();
 }
 
-void Viewport::set_size(vec2 size) {
+void Viewport::set_size(glm::vec2 size) {
 	this->size = size;
 	fbo_color->set_as_rgb8(size.x, size.y, 0);
 	fbo_depth_stencil->set_as_depth_stencil(size.x, size.y, 0);

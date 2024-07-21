@@ -1,9 +1,9 @@
 #include "utils.h"
 #include "logging.h"
 
-const string utils::load_text(const char* path) {
-	string text;
-	ifstream file;
+const std::string utils::load_text(const char* path) {
+	std::string text;
+	std::ifstream file;
 
 	file.exceptions(std::ifstream::failbit | std::ifstream::badbit);
 	try {

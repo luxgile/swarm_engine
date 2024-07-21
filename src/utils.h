@@ -4,8 +4,7 @@
 #include <sstream>
 #include <string>
 
-using namespace std;
 
 namespace utils {
-	const string load_text(const char* path);
+	const std::string load_text(const char* path);
 }

@@ -185,7 +185,7 @@ Version: 1.90.7
 Depends: vcpkg-cmake, vcpkg-cmake-config
 Architecture: x64-windows
 Multi-Arch: same
-Abi: 45ae5521a63822cd7722d3018303466f6a37aa3346ab4ea5f433512657587dd6
+Abi: b45312f2526b971863af385991c0b2da45a703939f6e576246f99bdce1295969
 Description: Bloat-free Immediate Mode Graphical User interface for C++ with minimal dependencies.
 Status: install ok installed
 
@@ -1271,5 +1271,12 @@ Architecture: x64-windows
 Multi-Arch: same
 Abi: 3d7166595d9d910d4bed041682564cfc26fd172ea7183db1ec9ca70406c316e0
 Description: A fast entity component system (ECS) for C & C++
+Status: install ok installed
+
+Package: imgui
+Feature: docking-experimental
+Architecture: x64-windows
+Multi-Arch: same
+Description: Build with docking support
 Status: install ok installed
 

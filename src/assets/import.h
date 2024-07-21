@@ -12,14 +12,14 @@ public:
 
 class BaseFileImport {
 public:
-	virtual type_index file_type() = 0;
+	virtual std::type_index file_type() = 0;
 	virtual Result<void*, ImportError> raw_load_file(const char* path) = 0;
 };
 
 template <typename T>
 class FileImport : public BaseFileImport {
 public:
-	type_index file_type() override { return typeid(T); }
+	std::type_index file_type() override { return typeid(T); }
 	virtual Result<void*, ImportError> raw_load_file(const char* path) { return load_file(path); }
 	virtual Result<T*, ImportError> load_file(const char* path) = 0;
 };

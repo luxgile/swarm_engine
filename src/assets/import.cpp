@@ -4,8 +4,8 @@
 
 Result<GPUShader*, ImportError> GPUShaderImport::load_file(const char* path) {
 	Console::log_verbose("Loading gpu shader at path: {}", path);
-	auto vert = utils::load_text(string(path).append(".vert").c_str());
-	auto frag = utils::load_text(string(path).append(".frag").c_str());
+	auto vert = utils::load_text(std::string(path).append(".vert").c_str());
+	auto frag = utils::load_text(std::string(path).append(".frag").c_str());
 
 	auto render_bd = App::get_render_backend();
 	GPUShader* shader = render_bd->shaders.create();
@@ -18,7 +18,7 @@ Result<GPUModel*, ImportError> GPUModelImport::load_file(const char* path) {
 	Assimp::Importer importer;
 	auto scene = importer.ReadFile(path, aiProcess_Triangulate | aiProcess_FlipUVs);
 	if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode) {
-		return Error(ImportError{ format("Loading gpu model failed: {}", importer.GetErrorString()) });
+		return Error(ImportError{ std::format("Loading gpu model failed: {}", importer.GetErrorString()) });
 	}
 
 	GPUModel* model = App::get_render_backend()->models.create();
@@ -65,7 +65,7 @@ GPUMesh* GPUModelImport::process_ai_mesh(aiMesh* mesh, const aiScene* scene) {
 			vertex.coords.y = mesh->mTextureCoords[0][i].y;
 		}
 		else {
-			vertex.coords = vec2(0.0f, 0.0f);
+			vertex.coords = glm::vec2(0.0f, 0.0f);
 		}
 
 		vertices.push_back(vertex);
@@ -100,7 +100,7 @@ Result<GPUTexture2D*, ImportError> GPUTexture2DImport::load_file(const char* pat
 	stbi_set_flip_vertically_on_load(true);
 	unsigned char* data = stbi_load(path, &width, &heigth, &nrChannels, 0);
 	if (!data) {
-		return Error(ImportError{format("Failed to load texture at: %s\n %s\n", path, stbi_failure_reason())});
+		return Error(ImportError{ std::format("Failed to load texture at: %s\n %s\n", path, stbi_failure_reason())});
 	}
 
 	GPUTexture2D* texture = App::get_render_backend()->textures.create();
@@ -112,14 +112,14 @@ Result<GPUTexture2D*, ImportError> GPUTexture2DImport::load_file(const char* pat
 Result<GPUCubemapTexture*, ImportError> GPUCubemapTextureImport::load_file(const char* path) {
 	Console::log_verbose("Loading gpu cubemap at path: {}", path);
 	int width, heigth, nrChannels;
-	vector<unsigned char*> cubemap_data;
+	std::vector<unsigned char*> cubemap_data;
 	for (size_t i = 0; i < 6; i++) {
-		auto face_path = string(path);
+		auto face_path = std::string(path);
 		std::replace(face_path.begin(), face_path.end(), '#', std::to_string(i).c_str()[0]);
 		stbi_set_flip_vertically_on_load(true);
 		unsigned char* data = stbi_load(face_path.c_str(), &width, &heigth, &nrChannels, 0);
 		if (!data) {
-			return Error(ImportError{ format("Failed to load cubemap at: %s\n %s\n", path, stbi_failure_reason()) });
+			return Error(ImportError{ std::format("Failed to load cubemap at: %s\n %s\n", path, stbi_failure_reason()) });
 		}
 		Console::log_verbose("Loading gpu cubemap face at path: {}", face_path.c_str());
 		cubemap_data.push_back(data);
