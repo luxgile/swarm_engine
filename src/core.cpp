@@ -4,12 +4,13 @@
 #include "assets/assets.h"
 #include "../src_editor/editor_module.h"
 #include "rendering/render_plugin.h"
+#include "logging.h"
 
 App* App::singleton = nullptr;
 
 App::App() {
 	if (singleton != nullptr) {
-		std::cout << "Error: Multiple applications detected, make sure only one has been constructed.\n" << std::endl;
+		Console::log_error("Multiple applications detected, make sure only one has been constructed.");
 		return;
 	}
 
@@ -25,7 +26,7 @@ App::App() {
 
 	render_backend = std::make_unique<RendererBackend>();
 	auto rrender = render_backend.get()->setup();
-	if (!rrender) printf("Error: Backend failed to initialize:\n%s", rrender.error().error.c_str());
+	if (!rrender) Console::log_critical("Render backend failed to initialize:\n{}", rrender.error().error.c_str());
 
 	// Create the obligatory world.
 	auto main_world = create_world();

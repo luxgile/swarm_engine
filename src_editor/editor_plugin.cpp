@@ -5,7 +5,19 @@
 #include "../src/flecs_helpers.h"
 #include "windows/editor_window.h";
 #include "windows/viewport_window.h";
+#include <print>
+#include "windows/console_window.h"
 
+
+struct Unit {};
+struct CombatUnit : Unit {};
+struct MeleeUnit : CombatUnit {};
+struct RangedUnit : CombatUnit {};
+
+struct Warrior : MeleeUnit {};
+struct Wizard : RangedUnit {};
+struct Marksman : RangedUnit {};
+struct Builder : Unit {};
 
 Result<void, PluginError> EditorPlugin::setup_plugin(World* world) {
 	auto editor_ecs = world->get_ecs();
@@ -13,10 +25,8 @@ Result<void, PluginError> EditorPlugin::setup_plugin(World* world) {
 	auto app_ecs = App::get_main_world()->get_ecs();
 	auto app_render_world = app_ecs->get<CRenderWorld>();
 
-
-
 	editor_ecs->system("Main editor docking space")
-	.iter([](flecs::iter& it) {
+		.iter([](flecs::iter& it) {
 		auto wnd = App::get_render_backend()->get_main_window();
 		auto wnd_size = wnd->get_size();
 		auto wnd_flags = ImGuiWindowFlags_NoBringToFrontOnFocus |
@@ -52,9 +62,17 @@ Result<void, PluginError> EditorPlugin::setup_plugin(World* world) {
 
 	editor_ecs->component<CEditorWindow>().member<bool>("visible");
 	editor_ecs->component<CViewportWindow>().is_a<CEditorWindow>();
+	editor_ecs->component<CConsoleWindow>().is_a<CEditorWindow>();
+
 	editor_ecs->entity("Viewport").add<CViewportWindow>();
-	editor_ecs->system<CViewportWindow>("Draw Windows")
-	.each([](flecs::entity e, CViewportWindow& wnd) {
+	editor_ecs->entity("Console").add<CConsoleWindow>();
+
+	editor_ecs->system<CViewportWindow>("Draw Viewport")
+		.each([](flecs::entity e, CViewportWindow& wnd) {
+		wnd.draw_window();
+	});
+	editor_ecs->system<CConsoleWindow>("Draw Console")
+		.each([](flecs::entity e, CConsoleWindow& wnd) {
 		wnd.draw_window();
 	});
 

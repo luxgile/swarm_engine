@@ -7,7 +7,7 @@
 #include "imgui.h"
 #include "../imgui/imgui_impl_glfw.h"
 #include "../imgui/imgui_impl_opengl3.h"
-#include <print>
+#include "../logging.h"
 
 using namespace std;
 const int SHADOW_RES = 1024;
@@ -29,8 +29,8 @@ Result<void, RendererError> RendererBackend::setup() {
 	// get version info
 	const GLubyte* renderer = glGetString(GL_RENDERER); // get renderer string
 	const GLubyte* version = glGetString(GL_VERSION); // version as a string
-	printf("Renderer: %s\n", renderer);
-	printf("OpenGL version supported %s\n", version);
+	Console::log_info("Renderer: {}", reinterpret_cast<const char*>(renderer));
+	Console::log_info("OpenGL: {}", reinterpret_cast<const char*>(version));
 
 	auto rinternals = setup_internals();
 	if (!rinternals) return rinternals;
@@ -41,14 +41,14 @@ Result<void, RendererError> RendererBackend::setup() {
 
 Result<void, RendererError> RendererBackend::setup_gl() {
 	if (!glfwInit()) {
-		return Error(RendererError{ .error = "ERROR: could not start GLFW3" });
+		return Error(RendererError{ .error = "Could not start GLFW3" });
 	}
 }
 
 Result<void, RendererError> RendererBackend::setup_glew() {
 	glewExperimental = GL_TRUE;
 	if (glewInit() != 0) {
-		return Error(RendererError{ .error = "ERROR: could not start GLEW" });
+		return Error(RendererError{ .error = "Could not start GLEW" });
 	}
 }
 
@@ -69,7 +69,7 @@ Result<void, RendererError> RendererBackend::setup_internals() {
 }
 
 Result<void, RendererError> RendererBackend::setup_imgui() {
-	if (imgui_installed) return Error(RendererError{ .error = "Error: ImGui already installed." });
+	if (imgui_installed) return Error(RendererError{ .error = "ImGui already installed." });
 
 	IMGUI_CHECKVERSION();
 	ImGui::CreateContext();
@@ -127,7 +127,7 @@ void RendererBackend::render_worlds() {
 }
 
 Result<void, RendererError> RendererBackend::render_world(RenderWorld* world) {
-	if (!world->is_ready()) return Error(RendererError{ .error = "Error: World not ready to be rendered. Check it was initialized properly." });
+	if (!world->is_ready()) return Error(RendererError{ .error = "World not ready to be rendered. Check it was initialized properly." });
 
 	auto camera = world->get_active_camera();
 	render_shadowmaps(world->lights, world->visuals);
@@ -174,7 +174,7 @@ void RendererBackend::render_shadowmaps(vector<Light*> lights, vector<GPUVisual*
 		//shadows_fbo->set_output_depth(sm->shadowmap);
 		shadows_fbo->set_output_depth(shadowmap_textures, i);
 		if (!shadows_fbo->is_complete()) {
-			fprintf(stderr, "ERROR: Shadowmap frame buffer is incompleted. Some shadows might be missing");
+			Console::log_error("Shadowmap frame buffer {} is incompleted. Some shadows might be missing.", shadows_fbo->get_gl_id());
 			continue;
 		}
 		glViewport(0, 0, SHADOW_RES, SHADOW_RES);
@@ -341,7 +341,7 @@ Result<GL_ID, ShaderError> GPUShader::compile_source(ShaderSrcType type, const c
 	if (!success) {
 		char infoLog[512];
 		glGetShaderInfoLog(compiled, 512, NULL, infoLog);
-		return Error(ShaderError{ .error = format("Error: Compilation failed for shader source {}: \n%s", (int)type, infoLog) });
+		return Error(ShaderError{ .error = format("Compilation failed for shader source {}: \n%s", (int)type, infoLog) });
 	};
 	return compiled;
 }
@@ -365,7 +365,7 @@ Result<void, ShaderError> GPUShader::compile_shader(const char* vert, const char
 	if (!success) {
 		char infoLog[512];
 		glGetProgramInfoLog(gl_program, 512, NULL, infoLog);
-		return Error(ShaderError{ .error = format("ERROR: Failed linking shader:\n%s", infoLog) });
+		return Error(ShaderError{ .error = format("Failed linking shader:\n%s", infoLog) });
 	}
 
 	glDeleteShader(vertex);

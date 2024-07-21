@@ -1,4 +1,5 @@
 #include "utils.h"
+#include "logging.h"
 
 const string utils::load_text(const char* path) {
 	string text;
@@ -14,7 +15,7 @@ const string utils::load_text(const char* path) {
 		text = stream.str();
 	}
 	catch (std::ifstream::failure e) {
-		std::cout << "ERROR::SHADER::FILE_NOT_SUCCESFULLY_READ" << std::endl;
+		Console::log_error("File at {} not succesfully read.", path);
 	}
 
 	return text;

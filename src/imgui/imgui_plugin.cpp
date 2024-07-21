@@ -5,7 +5,7 @@
 #include "imgui_impl_glfw.h"
 
 Result<void, PluginError> ImGuiPlugin::setup_plugin(World* world) {
-	if (!world->has_plugin<RenderPlugin>()) return Error(PluginError{ .error = "Error: Dependency with plugin RenderPlugin is missing" });
+	if (!world->has_plugin<RenderPlugin>()) return Error(PluginError{ .error = "Dependency with plugin RenderPlugin is missing" });
 
 	auto ecs = world->get_ecs();
 

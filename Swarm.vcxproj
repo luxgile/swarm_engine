@@ -137,6 +137,7 @@
     <ClCompile Include="src\imgui\imgui_impl_glfw.cpp" />
     <ClCompile Include="src\imgui\imgui_impl_opengl3.cpp" />
     <ClCompile Include="src\imgui\imgui_plugin.cpp" />
+    <ClCompile Include="src\logging.cpp" />
     <ClCompile Include="src\rendering\renderer.cpp" />
     <ClCompile Include="src\rendering\render_plugin.cpp" />
     <ClCompile Include="src\rendering\render_world.cpp" />
@@ -147,6 +148,7 @@
     <ClCompile Include="src\world.cpp" />
     <ClCompile Include="src_editor\editor_module.cpp" />
     <ClCompile Include="src_editor\editor_plugin.cpp" />
+    <ClCompile Include="src_editor\windows\console_window.cpp" />
     <ClCompile Include="src_editor\windows\editor_window.cpp" />
     <ClCompile Include="src_editor\windows\viewport_window.cpp" />
     <ClCompile Include="src_editor\windows\viewport_window.h" />
@@ -157,6 +159,7 @@
     <ClInclude Include="src\core.h" />
     <ClInclude Include="src\flecs_helpers.h" />
     <ClInclude Include="src\imgui\imgui_plugin.h" />
+    <ClInclude Include="src\logging.h" />
     <ClInclude Include="src\plugin.h" />
     <ClInclude Include="src\rendering\render_plugin.h" />
     <ClInclude Include="src\world.h" />
@@ -170,6 +173,7 @@
     <ClInclude Include="src\venum.h" />
     <ClInclude Include="src_editor\editor_module.h" />
     <ClInclude Include="src_editor\editor_plugin.h" />
+    <ClInclude Include="src_editor\windows\console_window.h" />
     <ClInclude Include="src_editor\windows\editor_window.h" />
   </ItemGroup>
   <ItemGroup>
