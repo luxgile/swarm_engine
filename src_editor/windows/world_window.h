@@ -10,6 +10,8 @@
 class CWorldWindow : public CEditorWindow {
 	Option<World*> selected_world = None;
 
+	void draw_entity(flecs::entity e);
+
 public:
 	CWorldWindow();
 	virtual void on_draw() override;

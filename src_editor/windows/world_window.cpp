@@ -1,5 +1,28 @@
 #include "world_window.h"
 
+void CWorldWindow::draw_entity(flecs::entity e) {
+	bool has_childen = false;
+	e.children([&has_childen](flecs::entity e) {
+		has_childen = true;
+		return;
+	});
+
+	if (has_childen) {
+		bool open = ImGui::TreeNodeEx(e.name().c_str(), ImGuiTreeNodeFlags_SpanAllColumns);
+		if (open) {
+			e.children([this](flecs::entity e) {
+				draw_entity(e);
+			});
+			ImGui::TreePop();
+		}
+	}
+	else {
+		ImGui::TreeNodeEx(e.name().c_str(),
+			ImGuiTreeNodeFlags_SpanAllColumns | ImGuiTreeNodeFlags_Leaf
+			| ImGuiTreeNodeFlags_Bullet | ImGuiTreeNodeFlags_NoTreePushOnOpen);
+	}
+}
+
 CWorldWindow::CWorldWindow() {
 	title = "World View";
 }
@@ -26,7 +49,7 @@ void CWorldWindow::on_draw() {
 	}
 
 	auto ecs = selected_world.value()->get_ecs();
-	ecs->children([](flecs::entity e) {
-		ImGui::Text(e.name().c_str());
+	ecs->children([this](flecs::entity e) {
+		draw_entity(e);
 	});
 }
