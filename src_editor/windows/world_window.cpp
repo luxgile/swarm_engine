@@ -1,6 +1,8 @@
 #include "world_window.h"
 
 void CWorldWindow::draw_entity(flecs::entity e) {
+	if (e.has(flecs::System) || e.has<flecs::Type>() || e.has(flecs::Module)) return;
+	//TODO: Find out a way of doing this better.
 	bool has_childen = false;
 	e.children([&has_childen](flecs::entity e) {
 		has_childen = true;
@@ -50,6 +52,7 @@ void CWorldWindow::on_draw() {
 
 	auto ecs = selected_world.value()->get_ecs();
 	ecs->children([this](flecs::entity e) {
+		if (e.has(flecs::System) || e.has<flecs::Type>() || e.has(flecs::Module)) return;
 		draw_entity(e);
 	});
 }
