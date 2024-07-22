@@ -59,7 +59,11 @@ void CConsoleWindow::on_draw() {
 				ImGui::TableNextRow();
 				ImGui::TableSetBgColor(ImGuiTableBgTarget_RowBg0, get_color_from_log(&log));
 				ImGui::TableSetColumnIndex(0);
-				ImGui::Text(std::to_string(log.get_type()).c_str());
+				auto selectable_flags = ImGuiSelectableFlags_SpanAllColumns | ImGuiSelectableFlags_AllowOverlap;
+				if (ImGui::Selectable(std::to_string(log.get_type()).c_str(), i == selected_id, selectable_flags)) {
+					selected_id = i;
+				}
+				//ImGui::Text(std::to_string(log.get_type()).c_str());
 				ImGui::TableSetColumnIndex(1);
 				ImGui::Text(log.get_log().c_str());
 				ImGui::TableSetColumnIndex(2);

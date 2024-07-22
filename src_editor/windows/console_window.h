@@ -10,7 +10,7 @@ struct CConsoleWindow : public CEditorWindow {
 private:
 	int selected_id = -1;
 
-	bool keep_at_bottom = false;
+	bool keep_at_bottom = true;
 
 	ImU32 get_color_from_log(ConsoleLog* log);
 
