@@ -5,7 +5,7 @@
 #include <print>
 
 void EditorModule::setup() {
-	editor_world = App::create_world();
+	editor_world = App::create_world("Editor World");
 	editor_world->toggle_flecs_rest(true);
 
 	editor_render_world = App::get_render_backend()->worlds.create();

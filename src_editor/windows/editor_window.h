@@ -1,5 +1,10 @@
 #pragma once
+#include "../../src/venum.h"
 #include <string>
+
+struct EditorWindowError {
+	std::string error;
+};
 
 struct CEditorWindow {
 	std::string title = "Title";
@@ -7,6 +12,6 @@ struct CEditorWindow {
 
 	CEditorWindow() = default;
 	virtual void pre_draw() {}
-	void draw_window();
+	Result<void, EditorWindowError> draw_window();
 	virtual void on_draw() {}
 };

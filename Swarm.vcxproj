@@ -153,6 +153,7 @@
     <ClCompile Include="src_editor\windows\editor_window.cpp" />
     <ClCompile Include="src_editor\windows\viewport_window.cpp" />
     <ClCompile Include="src_editor\windows\viewport_window.h" />
+    <ClCompile Include="src_editor\windows\world_window.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\assets\assets.h" />
@@ -177,6 +178,7 @@
     <ClInclude Include="src_editor\editor_plugin.h" />
     <ClInclude Include="src_editor\windows\console_window.h" />
     <ClInclude Include="src_editor\windows\editor_window.h" />
+    <ClInclude Include="src_editor\windows\world_window.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include=".gitignore" />
@@ -201,6 +203,9 @@
     <Image Include="res\skybox\skybox4.png" />
     <Image Include="res\skybox\skybox5.png" />
     <Image Include="res\uv_texture.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Font Include="res\fonts\OpenSans-SemiBold.ttf" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

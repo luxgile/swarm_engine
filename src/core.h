@@ -43,7 +43,8 @@ public:
 	/// @return 
 	static World* get_main_world() { return singleton->worlds[0]; }
 
-	static World* create_world();
+	static const std::vector<World*> get_worlds();
+	static World* create_world(std::string name = "");
 
 	template<typename T>
 	T* add_module() {

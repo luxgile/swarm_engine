@@ -1,6 +1,6 @@
 #include "world.h"
 
-World::World() {
+World::World(std::string name) : name(name) {
 	ecs = new flecs::world();
 }
 

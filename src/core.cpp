@@ -29,15 +29,22 @@ App::App() {
 	if (!rrender) Console::log_critical("Render backend failed to initialize:\n{}", rrender.error().error.c_str());
 
 	// Create the obligatory world.
-	auto main_world = create_world();
+	auto main_world = create_world("Main World");
 	main_world->add_plugin<RenderPlugin>();
 
 	app_started = true;
 }
 
-World* App::create_world() {
-	auto world = new World();
+const std::vector<World*> App::get_worlds() {
+	return singleton->worlds;
+}
+
+World* App::create_world(std::string name) {
+	if (name.empty()) name = "World " + singleton->worlds.size();
+
+	auto world = new World(name);
 	singleton->worlds.push_back(world);
+
 	return world;
 }
 

@@ -77,6 +77,8 @@ Result<void, RendererError> RendererBackend::setup_imgui() {
 	io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
 	io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
 
+	io.Fonts->AddFontFromFileTTF("res/fonts/OpenSans-SemiBold.ttf", 18);
+
 	ImGui_ImplOpenGL3_Init();
 	ImGui_ImplGlfw_InitForOpenGL(get_main_window()->gl_wnd, true); // We need to initialize 
 

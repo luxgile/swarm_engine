@@ -5,6 +5,7 @@
 #include "../src/flecs_helpers.h"
 #include "windows/editor_window.h"
 #include "windows/viewport_window.h"
+#include "windows/world_window.h"
 #include <print>
 #include "windows/console_window.h"
 #include "../src/logging.h"
@@ -53,13 +54,16 @@ Result<void, PluginError> EditorPlugin::setup_plugin(World* world) {
 	editor_ecs->component<CEditorWindow>().member<bool>("visible");
 	editor_ecs->component<CViewportWindow>().is_a<CEditorWindow>();
 	editor_ecs->component<CConsoleWindow>().is_a<CEditorWindow>();
+	editor_ecs->component<CWorldWindow>().is_a<CEditorWindow>();
 
 	editor_ecs->entity("Viewport").add<CViewportWindow>();
 	editor_ecs->entity("Console").add<CConsoleWindow>();
+	editor_ecs->entity("World View").add<CWorldWindow>();
 
 	editor_ecs->system<CEditorWindow>("Draw Viewport")
 		.each([](flecs::entity e, CEditorWindow& wnd) {
-		wnd.draw_window();
+		auto result = wnd.draw_window();
+		if (!result) Console::log_error(result.error().error.c_str());
 	});
 
 	return Result<void, PluginError>();
