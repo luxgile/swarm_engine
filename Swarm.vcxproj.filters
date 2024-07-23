@@ -84,6 +84,9 @@
     <ClCompile Include="src_editor\windows\world_window.cpp">
       <Filter>Archivos de origen</Filter>
     </ClCompile>
+    <ClCompile Include="src_editor\windows\entity_window.cpp">
+      <Filter>Archivos de origen</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\core.h">
@@ -153,6 +156,9 @@
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
     <ClInclude Include="src_editor\windows\world_window.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="src_editor\windows\entity_window.h">
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
   </ItemGroup>

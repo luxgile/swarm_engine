@@ -1,12 +1,14 @@
 #pragma once
 #include "../../src/venum.h"
 #include <string>
+#include "../../src/world.h"
 
 struct EditorWindowError {
 	std::string error;
 };
 
 struct CEditorWindow {
+	World* editor_world;
 	std::string title = "Title";
 	bool visible = true;
 
