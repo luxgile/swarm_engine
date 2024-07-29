@@ -52,6 +52,7 @@ Result<void, PluginError> EditorPlugin::setup_plugin(World* world) {
 		ImGui::End();
 	});
 
+	editor_ecs->component<CSelectedWorld>();
 	editor_ecs->component<CSelectedEntity>().member(flecs::Entity, "entity");
 
 	editor_ecs->component<CEditorWindow>().member<bool>("visible");
@@ -60,13 +61,16 @@ Result<void, PluginError> EditorPlugin::setup_plugin(World* world) {
 	editor_ecs->component<CWorldWindow>().is_a<CEditorWindow>();
 	editor_ecs->component<CEntityWindow>().is_a<CEditorWindow>();
 
+	editor_ecs->set<CSelectedWorld>({ App::get_main_world() });
 	editor_ecs->entity("Viewport").add<CViewportWindow>();
 	editor_ecs->entity("Console").add<CConsoleWindow>();
 	editor_ecs->entity("World View").add<CWorldWindow>();
 	editor_ecs->entity("Entity View").add<CEntityWindow>();
 
 	editor_ecs->system<CEditorWindow>("Draw Viewport")
-		.each([](flecs::entity e, CEditorWindow& wnd) {
+		.each([world](flecs::entity e, CEditorWindow& wnd) {
+		wnd.editor_world = world;
+
 		auto result = wnd.draw_window();
 		if (!result) Console::log_error(result.error().error.c_str());
 	});
